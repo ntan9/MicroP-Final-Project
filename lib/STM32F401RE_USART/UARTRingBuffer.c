@@ -57,11 +57,11 @@ void flush_buffer(void) {
 }
 
 void usart_ISR(USART_TypeDef* USART) {
-    if (USART->SR.RXNE && USART->CR1.RXNEIE) {
-        uint8_t c = USART->DR.DR;
+    if ((USART->SR & USART_SR_RXNE_Msk) && (USART->CR1 & USART_CR1_RXNEIE)) {
+        uint8_t c = USART->DR;
         store_char(c, _rx_buffer);
         return;
-    } else if (USART->SR.TXE && USART->CR1.TXEIE) {
+    } else if (USART->SR & USART_SR_TXE_Msk && USART->CR1 & USART_CR1_TXEIE_Msk) {
         // Send char from tx buffer over USART and increment the tail
         
         uint8_t c = _tx_buffer->buffer[_tx_buffer->tail];
@@ -69,7 +69,7 @@ void usart_ISR(USART_TypeDef* USART) {
         _tx_buffer->tail = (uint32_t)(_tx_buffer->tail + 1) % UART_BUFFER_SIZE;
 
         if (_tx_buffer->head == _tx_buffer->tail) {
-            USART->CR1.TXEIE = 0;
+            USART->CR1 &= ~USART_CR1_TXEIE_Msk;
         }
         return;
     }
