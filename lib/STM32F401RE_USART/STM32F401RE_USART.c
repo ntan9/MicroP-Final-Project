@@ -92,7 +92,7 @@ USART_TypeDef * initUSART(uint8_t USART_ID, uint32_t baud_rate){
 void sendChar(USART_TypeDef * USART, uint8_t data){
     while(!USART->SR & USART_SR_TXE_Msk);
     USART->DR = data;
-    while(!USART->SR * USART_SR_TC_Msk);
+    while(!USART->SR & USART_SR_TC_Msk);
 }
 
 void sendString(USART_TypeDef * USART, uint8_t * charArray){

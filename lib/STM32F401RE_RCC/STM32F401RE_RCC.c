@@ -12,7 +12,7 @@ void configurePLL() {
 
     RCC->CR &= ~(RCC_CR_PLLON_Msk);     // Turn off PLL
 
-    while (RCC->CR & RCC_CR_PLLRDY_Msk != 0);   // Wait till PLL is unlocked
+    while ((RCC->CR & RCC_CR_PLLRDY_Msk) != 0);   // Wait till PLL is unlocked
 
     // Load configuration
     RCC->PLLCFGR &= ~(RCC_PLLCFGR_PLLSRC_Msk |

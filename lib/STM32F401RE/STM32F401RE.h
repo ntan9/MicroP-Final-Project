@@ -15,6 +15,7 @@
 #include "STM32F401RE_TIM.h"
 #include "STM32F401RE_1WIRE.h"
 #include "STM32F401RE_USART.h"
+#include "STM32F401RE_I2C.h"
 
 
 #endif
