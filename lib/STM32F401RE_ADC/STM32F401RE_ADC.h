@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include "stm32f4xx.h"
 
-void initADC(ADC_TypeDef *A2D);
+void initADC(ADC_TypeDef *A2D, GPIO_TypeDef *GPIO, uint8_t pin);
 uint16_t read_ADC(ADC_TypeDef *A2D);
 
 #endif
