@@ -40,7 +40,7 @@ void configureClock(){
     
     // Turn on and bypass for HSE from ST-LINK
     RCC->CR |= (1 << RCC_CR_HSEBYP_Pos | 1 << RCC_CR_HSEON_Pos);
-    while(!RCC->CR & RCC_CR_HSERDY_Msk);
+    while(!(RCC->CR & RCC_CR_HSERDY_Msk));
     
     // Configure and turn on PLL for 84 MHz
     configurePLL();
