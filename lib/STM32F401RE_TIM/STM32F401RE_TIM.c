@@ -11,9 +11,9 @@ void initTIM(TIM_TypeDef * TIMx){
   // Set prescaler division factor
   TIMx->PSC = (psc_div - 1);
   // Generate an update event to update prescaler value
-  TIMx->EGR |= 1 << TIM_EGR_UG_Pos;
+  TIMx->EGR |= TIM_EGR_UG;
   // Enable counter
-  TIMx->CR1 |= 1 << TIM_CR1_CEN_Pos; // Set CEN = 1
+  TIMx->CR1 |= TIM_CR1_CEN; // Set CEN = 1
 }
 
 void delay_millis(TIM_TypeDef * TIMx, uint32_t ms){

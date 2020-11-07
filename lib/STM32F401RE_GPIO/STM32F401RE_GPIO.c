@@ -9,12 +9,12 @@ void pinMode(GPIO_TypeDef* GPIO_PORT_PTR, int pin, int function) {
             GPIO_PORT_PTR->MODER &= ~(0b11 << 2*pin);
             break;
         case GPIO_OUTPUT:
-            GPIO_PORT_PTR->MODER |= (0b1 << 2*pin);
-            GPIO_PORT_PTR->MODER &= ~(0b1 << (2*pin+1));
+            GPIO_PORT_PTR->MODER |= (0b11 << 2*pin);
+            GPIO_PORT_PTR->MODER &= ~(0b10 << (2*pin));
             break;
         case GPIO_ALT:
-            GPIO_PORT_PTR->MODER &= ~(0b1 << 2*pin);
-            GPIO_PORT_PTR->MODER |= (0b1 << (2*pin+1));
+            GPIO_PORT_PTR->MODER &= ~(0b11 << 2*pin);
+            GPIO_PORT_PTR->MODER |= (0b10 << (2*pin));
             break;
         case GPIO_ANALOG:
             GPIO_PORT_PTR->MODER |= (0b11 << 2*pin);

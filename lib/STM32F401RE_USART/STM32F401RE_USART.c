@@ -28,7 +28,7 @@ USART_TypeDef * initUSART(uint8_t USART_ID, uint32_t baud_rate){
 
     switch(USART_ID){
         case USART1_ID :
-            RCC->APB2ENR |= RCC_APB2ENR_USART1EN;   // Set USART1EN
+            RCC->APB2ENR |= (RCC_APB2ENR_USART1EN);   // Set USART1EN
 
             // Configure pin modes as ALT function
             pinMode(GPIOA, GPIO_PA9, GPIO_ALT); // TX
@@ -37,20 +37,21 @@ USART_TypeDef * initUSART(uint8_t USART_ID, uint32_t baud_rate){
             GPIOA->AFR[1] |= (0b111 << GPIO_AFRH_AFSEL10_Pos | 0b111 << GPIO_AFRH_AFSEL9_Pos);
             break;
         case USART2_ID :
-            RCC->APB1ENR |= RCC_APB1ENR_USART2EN;       // Set USART1EN
+            RCC->APB1ENR |= (RCC_APB1ENR_USART2EN);       // Set USART1EN
 
             // Configure pin modes as ALT function
             pinMode(GPIOA, GPIO_PA2, GPIO_ALT); // TX
             pinMode(GPIOA, GPIO_PA3, GPIO_ALT); // RX
 
+            // Configure pin modes as ALT function
+            GPIOA->AFR[0] &= ~(GPIO_AFRL_AFSEL2_Msk | GPIO_AFRL_AFSEL3_Msk);
             // Configure correct alternate functions (AF07)
-            GPIOA->AFR[0] |= (0b111 << GPIO_AFRL_AFSEL3_Pos | 0b111 << GPIO_AFRL_AFSEL2_Pos);
+            GPIOA->AFR[0] |= (0b0111 << GPIO_AFRL_AFSEL2_Pos | 0b0111 << GPIO_AFRL_AFSEL3_Pos);
             break;
     }
 
-    USART->CR1 |= USART_CR1_UE;     // Enable USART
+    USART->CR1 |= (USART_CR1_UE);     // Enable USART
     USART->CR1 &= ~(USART_CR1_M_Msk | USART_CR1_OVER8_Msk);     // M = 0 and set 16 times sampling freq
-
     USART->CR2 &= ~(USART_CR2_STOP_Msk);    // 0b00 corresponds to 1 stop bit
 
     // Set baud rate to 9.6 kbps
@@ -90,9 +91,9 @@ USART_TypeDef * initUSART(uint8_t USART_ID, uint32_t baud_rate){
 }
 
 void sendChar(USART_TypeDef * USART, uint8_t data){
-    while(!USART->SR & USART_SR_TXE_Msk);
-    USART->DR = data;
-    while(!USART->SR & USART_SR_TC_Msk);
+    while(!(USART->SR & USART_SR_TXE));
+    USART->DR = data & USART_DR_DR;
+    while(!(USART->SR & USART_SR_TC));
 }
 
 void sendString(USART_TypeDef * USART, uint8_t * charArray){

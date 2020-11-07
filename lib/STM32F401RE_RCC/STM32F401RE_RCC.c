@@ -36,11 +36,11 @@ void configureClock(){
     */
     
     RCC->CFGR &= ~(RCC_CFGR_PPRE1_Msk | RCC_CFGR_PPRE2_Msk);
-    RCC->CFGR |= (0b000 << RCC_CFGR_PPRE1_Pos | 0b100 << RCC_CFGR_PPRE2_Pos);
+    RCC->CFGR |= (0b100 << RCC_CFGR_PPRE1_Pos | 0b000 << RCC_CFGR_PPRE2_Pos);
     
     // Turn on and bypass for HSE from ST-LINK
     RCC->CR |= (1 << RCC_CR_HSEBYP_Pos | 1 << RCC_CR_HSEON_Pos);
-    while(!RCC->CR & RCC_CR_HSERDY_Msk);
+    while(!(RCC->CR & RCC_CR_HSERDY_Msk));
     
     // Configure and turn on PLL for 84 MHz
     configurePLL();
@@ -48,7 +48,7 @@ void configureClock(){
     // Select PLL as clock source
     RCC->CFGR &= ~(RCC_CFGR_SW_Msk);
     RCC->CFGR |= (SW_PLL << RCC_CFGR_SW_Pos);
-    while(RCC->CFGR & RCC_CFGR_SWS_Msk != 0b10 << RCC_CFGR_SWS_Pos);
+    while((RCC->CFGR & RCC_CFGR_SWS_Msk) != (0b10 << RCC_CFGR_SWS_Pos));
 
     SystemCoreClock = 84000000;
 }
