@@ -23,7 +23,8 @@ int main(void) {
 
     initUSART(USART2_ID, 115200);
     initTIM(TIM2);
-    initADC(ADC1, GPIOA, 0);
+    initADC(ADC1, GPIOA, 0, 4, 6);
+    pinMode(GPIOA, 0, GPIO_ANALOG);
 
     while (1) {
         adc_val = read_ADC(ADC1);

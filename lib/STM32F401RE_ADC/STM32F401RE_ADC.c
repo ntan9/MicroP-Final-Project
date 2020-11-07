@@ -2,7 +2,7 @@
 
 #include "STM32F401RE_ADC.h"
 
-void initADC(ADC_TypeDef *A2D, GPIO_TypeDef *GPIO, uint8_t pin) {
+void initADC(ADC_TypeDef *A2D, GPIO_TypeDef *GPIO, uint8_t pin, uint8_t sample) {
     RCC->APB2ENR |= RCC_APB2ENR_ADC1EN; // Enable ADC
 
     A2D->CR2 |= ADC_CR2_ADON;   // Power on ADC
@@ -14,6 +14,7 @@ void initADC(ADC_TypeDef *A2D, GPIO_TypeDef *GPIO, uint8_t pin) {
     if(GPIO == GPIOB) pin += 8;              
     else if(GPIO == GPIOC) pin += 10;
     A2D->SQR3 |= (pin << ADC_SQR3_SQ1_Pos);
+    A2D->SMPR2 |= (sample << ADC_SMPR2_SMP0);
 }
 
 
