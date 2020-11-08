@@ -26,7 +26,7 @@ void configurePLL() {
 
     // Enable PLL and wait until it's locked
     RCC->CR |= (1 << RCC_CR_PLLON_Pos);
-    while(RCC->CR & RCC_CR_PLLRDY_Msk == 0);
+    while((RCC->CR & RCC_CR_PLLRDY_Msk) == 0);
 }
 
 void configureClock(){
