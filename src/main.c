@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
 
 // Vendor-provided device header file
 #include "stm32f4xx.h"
@@ -14,6 +16,7 @@
 #define SHOUT_IT 2
 #define SHAKE_IT 3
 #define HEAT_IT 4
+#define WIRE_IT 5
 
 #define MESSAGE_DELAY 250
 #define GAME_DELAY 2000
@@ -26,7 +29,7 @@ uint32_t score;
 uint8_t task;
 uint8_t input;
 /**
- * Main program.
+ko * Main program.
  */
 int main(void) {
     uint8_t msg[64];
@@ -34,10 +37,12 @@ int main(void) {
     configureFlash();
     configureClock();
 
-    RCC->AHB1ENR  |= (RCC_AHB1ENR_GPIOAEN);     // Enable GPIOA
-    RCC->AHB1ENR  |= (RCC_AHB1ENR_GPIOCEN);     // Enable GPIOC
-    RCC->APB1ENR  |= (RCC_APB1ENR_TIM2EN);      // Enable TIM2
-    RCC->APB2ENR  |= (RCC_APB2ENR_SYSCFGEN);    // Enable SYSCFG clock domain
+    // Enable GPIOA, GPIOB, GPIOC
+    RCC->AHB1ENR  |= (RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN | RCC_AHB1ENR_GPIOCEN);     
+    // Enable TIM2 and I2C1
+    RCC->APB1ENR  |= (RCC_APB1ENR_TIM2EN | RCC_APB1ENR_I2C1EN);
+    // Enable SYSCFG clock domain
+    RCC->APB2ENR  |= (RCC_APB2ENR_SYSCFGEN);    
 
     initUSART(USART2_ID, 115200);               // Initialize USART2 to print to terminal
     initTIM(DELAY_TIM);                              // Initialize TIM2
@@ -46,6 +51,21 @@ int main(void) {
 
     pinMode(GPIOA, 0, GPIO_ANALOG);             // PA0 is input for ADC
     pinMode(GPIOC, 13, GPIO_INPUT);             // PC13 is Nucleo Push Button
+
+    ///////////////////
+    // I2C1 Set up
+    //////////////////
+
+    // Set PB6 and PB7 to alternate function 4 and to open drain configuration
+    GPIOB->AFR[0] |= (4 << GPIO_AFRL_AFSEL6_Pos | 4 << GPIO_AFRL_AFSEL7_Pos);
+    pinMode(GPIOB, 6, 2);
+    pinMode(GPIOB, 7, 2);
+    GPIOB->OTYPER |= (1 << GPIO_OTYPER_OT6_Pos | 1 << GPIO_OTYPER_OT7_Pos);
+
+    initI2C(I2C1);
+    setUpAccelerometer(I2C1);
+
+
 
     // Enable interrupts globally
     __enable_irq();
@@ -70,6 +90,11 @@ int main(void) {
              */
             delay_millis(DELAY_TIM, MESSAGE_DELAY);
         }
+        // List of supported commands
+        int commands[] = {PUSH_IT};
+        srand(time(NULL));          // Initialize a random seed
+        int numCommands = 1;        // Used to generate random int of range [0, numCommands)
+
         score = 0;
         gameOver = 0;
         gameDelay = GAME_DELAY;
@@ -79,13 +104,33 @@ int main(void) {
 
         // Main game functionality
         while(1) {
-            task = PUSH_IT;
-            sendString(USART2, "Push It!\n\r");
-            delay_millis(DELAY_TIM, gameDelay);
-            if(task != input) goto game_over;
-            ++score;
-            input = 0;
-            gameDelay += GAME_DELAY_CHANGE;
+            task = commands[rand() % numCommands];
+            switch (task)
+            {
+            case PUSH_IT:
+                sendString(USART2, "Push It!\n\r");
+                delay_millis(DELAY_TIM, gameDelay);
+                if(task != input) goto game_over;
+                ++score;
+                input = 0;
+                gameDelay += GAME_DELAY_CHANGE;
+                break;
+            case SHOUT_IT:
+                break;
+            case SHAKE_IT:
+                sendString(USART2, "Shake It!\n\r");
+
+                // add modified delay function to check if the accelerometer has been shook or not
+
+                break;
+            case HEAT_IT:
+                break;
+            case WIRE_IT:
+                break;
+            default:
+                break;
+            }
+            
         }
         
 game_over:
