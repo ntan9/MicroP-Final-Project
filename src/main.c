@@ -1,33 +1,17 @@
-// Standard library includes
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include <stdlib.h>
+#include "main.h"
 
-// Vendor-provided device header file
-#include "stm32f4xx.h"
-#include "STM32F401RE.h"
+uint8_t gameStarted;                // Tracks if the game has started or not
+uint8_t gameOver;                   // 
+uint32_t gameDelay;                 // Tracks the amount of game will delay after each turn
+uint32_t score;                     // Tracks score of player
+uint8_t task;                       // Stores the task given to the player
+uint8_t input;                      // Stores the user's registered input
+uint8_t ambientTemp;                // Stores the ambient room temperature when the game starts
+int numCommands;                    // Used to generate random int of range [0, numCommands)
 
-#define PUSH_BUTTON 13
-#define DELAY_TIM TIM2
+// All commands that the game will support
+uint8_t commands[] = {PUSH_IT, SHOUT_IT, WIRE_IT, SHAKE_IT, HEAT_IT};     
 
-#define PUSH_IT 1
-#define SHOUT_IT 2
-#define SHAKE_IT 3
-#define HEAT_IT 4
-#define WIRE_IT 5
-
-#define MESSAGE_DELAY 250
-#define GAME_DELAY 2000
-#define GAME_DELAY_CHANGE -5
-
-uint8_t gameStarted;
-uint8_t gameOver;
-uint32_t gameDelay;
-uint32_t score;
-uint8_t task;
-uint8_t input;
 /**
 ko * Main program.
  */
@@ -89,48 +73,56 @@ int main(void) {
              * I think this has to do with the compiler optimizing parts out
              */
             delay_millis(DELAY_TIM, MESSAGE_DELAY);
-        }
-        // List of supported commands
-        int commands[] = {PUSH_IT};
-        srand(time(NULL));          // Initialize a random seed
-        int numCommands = 1;        // Used to generate random int of range [0, numCommands)
 
+        }
+        // Initialize a random seed
+        srand(time(NULL));          
+        
+        // Resets game elements
         score = 0;
         gameOver = 0;
         gameDelay = GAME_DELAY;
+        ambientTemp = 0;
+        numCommands = NUM_COMMANDS;
+
         sendString(USART2, "Ready?\n\r");
         delay_millis(DELAY_TIM, MESSAGE_DELAY);
         sendString(USART2, "Begin!\n\r");
 
         // Main game functionality
         while(1) {
+            // Clear user input and selects a random command for task
+            input = 0;
             task = commands[rand() % numCommands];
             switch (task)
             {
             case PUSH_IT:
                 sendString(USART2, "Push It!\n\r");
-                delay_millis(DELAY_TIM, gameDelay);
+                waitForInput(gameDelay);
                 if(task != input) goto game_over;
                 ++score;
                 input = 0;
                 gameDelay += GAME_DELAY_CHANGE;
                 break;
             case SHOUT_IT:
+                sendString(USART2, "Shout It!\n\r");
                 break;
-            case SHAKE_IT:
-                sendString(USART2, "Shake It!\n\r");
+            case WIRE_IT:
+                sendString(USART2, "Wire It!\n\r");
 
                 // add modified delay function to check if the accelerometer has been shook or not
 
                 break;
             case HEAT_IT:
+                sendString(USART2, "Heat It!\n\r");
+                --numCommands;
                 break;
-            case WIRE_IT:
+            case SHAKE_IT:
+                sendString(USART2, "Shake It!\n\r");
                 break;
             default:
                 break;
             }
-            
         }
         
 game_over:
@@ -155,7 +147,34 @@ void initPushButton() {
     __NVIC_EnableIRQ(40);                   // Enable External Line[15:10] Interrupts
 }
 
+// Waits for gameDelay time to get input from user
+void waitForInput(uint32_t gameDelay) {
+    // Placeholder for current temperature
+    uint8_t currTemp = 0;
 
+    if (currTemp <= ambientTemp + 1) {
+        numCommands = NUM_COMMANDS;
+    }
+
+    while (gameDelay > 0) {
+        // Poll the temperature sensor and accelerometer for any user input
+        uint8_t temp = HEAT_IT * (0 > (currTemp + 2));
+        uint8_t shake = SHAKE_IT * detectMotion(I2C1);
+        
+        // If either temp or shake is triggered, update input if input is 0
+        if ((temp || shake) || input) {
+            if (input) break;
+            
+            // Choose shake if both are non-zero, otherwise choose the non-zero var as input
+            input = max(temp, shake);
+            break;
+        }
+
+        // Delay for 5 milliseconds and poll again
+        gameDelay -= 5;
+        delay_millis(DELAY_TIM, 5);
+    }
+}
 
 /*
  * Interrupts
