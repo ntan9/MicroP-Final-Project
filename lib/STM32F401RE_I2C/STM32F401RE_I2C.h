@@ -28,6 +28,6 @@ uint8_t readI2C(I2C_TypeDef * I2Cx, uint8_t reg);
 void setUpAccelerometer(I2C_TypeDef * I2Cx);
 
 // Returns 1 if motion detected on accelerometer; 0 otherwise
-int detectMotion(I2C_TypeDef * I2Cx);
+uint8_t detectMotion(I2C_TypeDef * I2Cx);
 
 #endif

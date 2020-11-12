@@ -112,7 +112,7 @@ void setUpAccelerometer(I2C_TypeDef * I2Cx) {
     writeI2C(I2Cx, 0x2a, 0x19);     // Put device in Active mode
 }
 
-int detectMotion(I2C_TypeDef * I2Cx) {
+uint8_t detectMotion(I2C_TypeDef * I2Cx) {
     volatile uint8_t reg = readI2C(I2Cx, 0x16);
     return reg >> 7;
 }
