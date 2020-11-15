@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include "stm32f4xx.h"
 
+#define ADC_THRESHOLD_CHANGE 1500
 /* Initialize ADC A2D to take input from a GPIO pin
  * And sample for a set time
  * Values for sample:
@@ -19,6 +20,7 @@
  *      7 = 480 cycles
  */
 void initADC(ADC_TypeDef *A2D, GPIO_TypeDef *GPIO, uint8_t pin, uint8_t sample);
+void calibrateADC(ADC_TypeDef *A2D);
 uint16_t read_ADC(ADC_TypeDef *A2D);
 
 #endif

@@ -7,6 +7,9 @@
 #include <stdint.h> // Include stdint header
 #include "stm32f4xx.h"
 
+#define DISPLAY_RESET   4
+#define DISPLAY_DC      5
+#define DISPLAY_CS      6
 ///////////////////////////////////////////////////////////////////////////////
 // Function prototypes
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,7 +28,16 @@
  *    -- LLB disabled
  *    -- PCS = 0000 (Peripheral 0 selected), means NPCS[3:0] = 1110
  * Refer to the datasheet for more low-level details. */ 
+// Display clk freq - between 0-4 MHz
+// cpol = 0
+// ncpha -- we want to be 0
 void spiInit(uint32_t clkdivide, uint32_t cpol, uint32_t ncpha);
+
+/* Send reset pulse to board */
+// void displayInit();
+
+/* Write a single byte to the board */
+void displaySend(uint8_t command, uint8_t send);
 
 /* Transmits a character (1 byte) over SPI and returns the received character.
  *    -- send: the character to send over SPI

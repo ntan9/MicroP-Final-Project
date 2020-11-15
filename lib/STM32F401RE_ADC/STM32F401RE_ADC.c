@@ -10,6 +10,13 @@ void initADC(ADC_TypeDef *A2D, GPIO_TypeDef *GPIO, uint8_t pin, uint8_t sample) 
 
     A2D->SQR1 &= (0b0000 << ADC_SQR1_L_Pos); // Do only one conversion
 
+    // Enable watchdog
+    A2D->CR1 |= ADC_CR1_AWDEN;
+    // // Enable watchdog interrupt enable
+    // A2D->CR1 |= ADC_CR1_AWDIE;
+    // Set watchdog on input channel 0
+    A2D->CR1 &= 0;
+
     // Calculate ADC IN based on GPIO and pin
     if(GPIO == GPIOB) pin += 8;              
     else if(GPIO == GPIOC) pin += 10;
@@ -17,7 +24,14 @@ void initADC(ADC_TypeDef *A2D, GPIO_TypeDef *GPIO, uint8_t pin, uint8_t sample) 
     A2D->SMPR2 |= (sample << ADC_SMPR2_SMP0);
 }
 
-
+void calibrate_ADC(ADC_TypeDef *A2D) {
+    uint16_t baseline = read_ADC(A2D);
+    A2D->HTR &= ~(ADC_HTR_HT_Msk);
+    A2D->HTR |= ((baseline + ADC_THRESHOLD_CHANGE) & ADC_HTR_HT_Msk);
+    // Enable watchdog interrupt enable
+    A2D->CR1 |= ADC_CR1_AWDIE;
+    A2D->SR &= ~(ADC_SR_AWD_Msk);
+}
 
 uint16_t read_ADC(ADC_TypeDef *A2D) {
     A2D->CR2 |= ADC_CR2_SWSTART;        // Begin conversion of ADC

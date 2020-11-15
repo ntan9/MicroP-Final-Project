@@ -73,6 +73,12 @@ int main(void) {
 
 	setupOneWire();								// Sets up OneWire communication over PA6
 
+	//////////////////////
+	// Display SPI Set Up
+	//////////////////////
+
+	spiInit(4, 0, 0);
+	displayInit();
 
 	// Enable interrupts globally
 	__enable_irq();
@@ -82,112 +88,121 @@ int main(void) {
 
 	srand(time(NULL));
 
-	while (1) {
+	// Sample loop to write "Hi" to the display (I hope)
+	while(1) {
 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
-		sendString(USART2, "Push button to begin!\n\r");
-		// adc_val = read_ADC(ADC1);
-		// sprintf(msg, "ADC Value: %d\n\r", adc_val);
-		// sendString(USART2, msg);
+		displayWrite(1, 0b00011111);
+		displayWrite(1, 0b00000100);
+		displayWrite(1, 0b00011111);
+		displayWrite(1, 0b00000000);
+		displayWrite(1, 0b00011101);
+	}
+// 	while (1) {
+// 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
+// 		sendString(USART2, "Push button to begin!\n\r");
+// 		// adc_val = read_ADC(ADC1);
+// 		// sprintf(msg, "ADC Value: %d\n\r", adc_val);
+// 		// sendString(USART2, msg);
 
 
 
-		// Wait for user to start the game
-		while(!gameStarted){
-			/* 
-			 * For some reason, without the delay line the interrupt doesn't trigger
-			 * I think this has to do with the compiler optimizing parts out
-			 */
-			delay_millis(DELAY_TIM, MESSAGE_DELAY);
+// 		// Wait for user to start the game
+// 		while(!gameStarted){
+// 			/* 
+// 			 * For some reason, without the delay line the interrupt doesn't trigger
+// 			 * I think this has to do with the compiler optimizing parts out
+// 			 */
+// 			delay_millis(DELAY_TIM, MESSAGE_DELAY);
 
-		}
+// 		}
 		         
-		// Initialize a random seed
-		srand(rand()); 
+// 		// Initialize a random seed
+// 		srand(rand()); 
 
-		// Resets game elements
-		score = 0;
-		gameOver = 0;
-		gameDelay = GAME_DELAY;
-		ambientTemp = getTemperature();
-		numCommands = NUM_COMMANDS;
+// 		// Resets game elements
+// 		score = 0;
+// 		gameOver = 0;
+// 		gameDelay = GAME_DELAY;
+// 		ambientTemp = getTemperature();
+// 		numCommands = NUM_COMMANDS;
 
-		sendString(USART2, "Ready?\n\r");
-		delay_millis(DELAY_TIM, MESSAGE_DELAY);
-		sendString(USART2, "Begin!\n\r");
+// 		sendString(USART2, "Ready?\n\r");
+// 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
+// 		sendString(USART2, "Begin!\n\r");
 
-		// Main game functionality
-		while(1) {
+// 		// Main game functionality
+// 		while(1) {
 
 			
 
 
-			// Clear user input and selects a random command for task
-			input = 0;
-			task = commands[rand() % numCommands];
-			switch (task)
-			{
-			case PUSH_IT:
-				sendString(USART2, "Push It!\n\r");
-				waitForInput(gameDelay);
-				if(task != input) goto game_over;
-				++score;
-				input = 0;
-				gameDelay += GAME_DELAY_CHANGE;
-				break;
-			case SHOUT_IT:
-				sendString(USART2, "Shout It!\n\r");
-				break;
-			case WIRE_IT:
-				sendString(USART2, "Wire It!\n\r");
+// 			// Clear user input and selects a random command for task
+// 			input = 0;
+// 			task = commands[rand() % numCommands];
+// 			switch (task)
+// 			{
+// 			case PUSH_IT:
+// 				sendString(USART2, "Push It!\n\r");
+// 				waitForInput(gameDelay);
+// 				if(task != input) goto game_over;
+// 				++score;
+// 				input = 0;
+// 				gameDelay += GAME_DELAY_CHANGE;
+// 				break;
+// 			case SHOUT_IT:
+// 				sendString(USART2, "Shout It!\n\r");
+// 				break;
+// 			case WIRE_IT:
+// 				sendString(USART2, "Wire It!\n\r");
 
-				// add modified delay function to check if the accelerometer has been shook or not
+// 				// add modified delay function to check if the accelerometer has been shook or not
 
-				break;
-			case HEAT_IT:
+// 				break;
+// 			case HEAT_IT:
 				
-				// --numCommands;
+// 				// --numCommands;
 
-				currTemp = getTemperature();
-				if (currTemp <= ambientTemp + 1) {
-					// numCommands = NUM_COMMANDS;
+// 				currTemp = getTemperature();
+// 				if (currTemp <= ambientTemp + 1) {
+// 					// numCommands = NUM_COMMANDS;
 
-					sendString(USART2, "Heat It!\n\r");
-					waitForInput(gameDelay/4);
-					if(task != input) goto game_over;
-					++score;
-					gameDelay += GAME_DELAY_CHANGE;
-					break;
-				} else {
-					break;
-				}
+// 					sendString(USART2, "Heat It!\n\r");
+// 					waitForInput(gameDelay/4);
+// 					if(task != input) goto game_over;
+// 					++score;
+// 					gameDelay += GAME_DELAY_CHANGE;
+// 					break;
+// 				} else {
+// 					break;
+// 				}
 
-				break;
-			case SHAKE_IT:
-				sendString(USART2, "Shake It!\n\r");
-				waitForInput(gameDelay);
-				if(task != input) goto game_over;
-				++score;
-				gameDelay += GAME_DELAY_CHANGE;
+// 				break;
+// 			case SHAKE_IT:
+// 				sendString(USART2, "Shake It!\n\r");
+// 				waitForInput(gameDelay);
+// 				if(task != input) goto game_over;
+// 				++score;
+// 				gameDelay += GAME_DELAY_CHANGE;
 
-				break;
-			default:
-				break;
-			}
+// 				break;
+// 			default:
+// 				break;
+// 			}
 
-			// waitForInput(gameDelay);
-			// if(task != input) goto game_over;
-			// ++score;
-			// gameDelay += GAME_DELAY_CHANGE;
-		}
+// 			// waitForInput(gameDelay);
+// 			// if(task != input) goto game_over;
+// 			// ++score;
+// 			// gameDelay += GAME_DELAY_CHANGE;
+// 		}
 		
-game_over:
-		// Game Over Handler
-		gameStarted = 0;
-		sendString(USART2, "You Failed!\n\r");
-		sprintf(msg, "Your score was %d!\n\r", score);
-		sendString(USART2, msg);
-		delay_millis(DELAY_TIM, MESSAGE_DELAY);
-	}
+// game_over:
+// 		// Game Over Handler
+// 		gameStarted = 0;
+// 		sendString(USART2, "You Failed!\n\r");
+// 		sprintf(msg, "Your score was %d!\n\r", score);
+// 		sendString(USART2, msg);
+// 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
+// 	}
 }
 
 
@@ -229,6 +244,17 @@ void waitForInput(uint32_t gameDelay) {
 	}
 }
 
+// Initialize the LCD Display
+void displayInit(void) {
+	digitalWrite(GPIOB, DISPLAY_RESET, 1);
+	delay_micros(TIM2, 100);
+	digitalWrite(GPIOB, DISPLAY_RESET, 0);
+	// Set Power Down = 0, V to 0 (horizontal addressing), and H to 0 (normal instruction mode)
+	displaySend(0, 0b00100001);
+	// Set display configuration to normal mode
+	displaySend(0, 0b00001100);
+}
+
 /*
  * Interrupts
  */
@@ -250,3 +276,14 @@ void EXTI15_10_IRQHandler(void){
 	}
 }
 
+void ADC_IRQHandler(void) {
+	if(ADC1->SR & ADC_SR_AWD) {
+		// Disable watchdog interrupt enable
+    		ADC1->CR1 &= ~ADC_CR1_AWDIE;	
+		// Clear interrupt
+		ADC1->SR &= ~(ADC_SR_AWD_Msk);
+
+		input = SHOUT_IT;
+		DELAY_TIM->EGR |= TIM_EGR_UG;	// Write bit to clear the delay timer
+	}
+}
