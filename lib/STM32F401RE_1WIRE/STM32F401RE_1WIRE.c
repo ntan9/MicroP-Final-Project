@@ -17,10 +17,12 @@ uint8_t init(void){
 
 
     // Read the bus every 60 microsec and delay for at least 480 us
+    int time = 0;
     for (int i = 0; i < 4; ++i) {
         delay_micros(ONEWIRE_TIMx, 60);
+        time += 60;
         if (digitalRead(GPIOx, ONEWIRE_PIN) == 0) {
-            delay_micros(ONEWIRE_TIMx, 420);
+            delay_micros(ONEWIRE_TIMx, 480 - time);
             return 1;
         }
     }

@@ -107,7 +107,7 @@ uint8_t readI2C(I2C_TypeDef * I2Cx, uint8_t reg) {
 void setUpAccelerometer(I2C_TypeDef * I2Cx) {
     writeI2C(I2Cx, 0x2a, 0x18);     // Place device in Standby mode at 100Hz ODR
     writeI2C(I2Cx, 0x15, 0xf8);     // Configure motion detection with ELE latch
-    writeI2C(I2Cx, 0x17, 0x10);     // Set threshold value to be > 1g
+    writeI2C(I2Cx, 0x17, 0x18);     // Set threshold value to be > 1.5g
     writeI2C(I2Cx, 0x18, 0x0a);     // Set debounce counter to 10 counts
     writeI2C(I2Cx, 0x2a, 0x19);     // Put device in Active mode
 }
