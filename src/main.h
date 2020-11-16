@@ -30,8 +30,8 @@
 
 #define NUM_COMMANDS 5
 
-#define MESSAGE_DELAY 250
-#define GAME_DELAY 2000
+#define MESSAGE_DELAY 500
+#define GAME_DELAY 3000
 #define GAME_DELAY_CHANGE -5
 
 
@@ -41,4 +41,6 @@
 
 void initPushButton();
 void waitForInput(uint32_t gameDelay);
+void displayInit(void);
 void EXTI15_10_IRQHandler(void);
+void ADC_IRQHandler(void);

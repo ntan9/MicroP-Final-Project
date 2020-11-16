@@ -28,9 +28,10 @@ void spiInit(uint32_t br, uint32_t cpol, uint32_t cpha) {
     pinMode(GPIOA, 5, GPIO_ALT); // PA5, Arduino D13, SPI1_SCK
     pinMode(GPIOA, 7, GPIO_ALT); // PA7, Arduino D11, SPI1_MOSI
     pinMode(GPIOA, 4, GPIO_ALT); // PA4, Arduino A2, SPI1_NSS
-    pinMode(GPIOB, DISPLAY_CS, GPIO_OUTPUT); // Default: PB6, Arduino D10, Manual CS
+    pinMode(GPIOB, DISPLAY_CS, GPIO_OUTPUT); // Default: PB3, Arduino D3, Manual CS
     pinMode(GPIOB, DISPLAY_DC, GPIO_OUTPUT); // Default: PB5, Arduino D4, Manual D/C select (DISPLAY)
     pinMode(GPIOB, DISPLAY_RESET, GPIO_OUTPUT); // Default: PB4, Arduino D5, Manual Reset (DISPLAY)
+    // pinMode(GPIOA, 0, GPIO_OUTPUT);
 
     // Set to AF05 for SPI alternate functions
     GPIOA->AFR[0] |= (5 << GPIO_AFRL_AFSEL5_Pos | 5 << GPIO_AFRL_AFSEL7_Pos | 5 << GPIO_AFRL_AFSEL4_Pos);
@@ -40,24 +41,30 @@ void spiInit(uint32_t br, uint32_t cpol, uint32_t cpha) {
                 SPI_CR1_DFF_Msk | SPI_CR1_SSM_Msk | SPI_CR1_MSTR_Msk | SPI_CR1_SPE_Msk);
     
     // Set clock divisor, polarity, phase, 8 bit format, put SPI in master mode
-    SPI1->CR1 |= (br << SPI_CR1_BR_Pos | cpol << SPI_CR1_CPOL_Msk | cpha << SPI_CR1_CPHA_Pos |
-                /* 1 << SPI_CR1_DFF_Pos | */ 1 << SPI_CR1_MSTR_Pos);
+    SPI1->CR1 |= (br << SPI_CR1_BR_Pos | cpol << SPI_CR1_CPOL_Pos | cpha << SPI_CR1_CPHA_Pos |
+                 0 << SPI_CR1_DFF_Pos | 1 << SPI_CR1_MSTR_Pos);
     // Set NSS pin to output mode
     SPI1->CR2 |= SPI_CR2_SSOE;
+    // Turn on SSM
+    SPI1->CR1 |= SPI_CR1_SSM;
     // Enable SPI
-    SPI1->CR1 |= SPI_CR1_SPE_Pos;
+    SPI1->CR1 |= SPI_CR1_SPE;
 }
 
 
 void displaySend(uint8_t command, uint8_t send) {
-    digitalWrite(GPIOB, DISPLAY_CS, 0);
     digitalWrite(GPIOB, DISPLAY_DC, command);
-    SPI1->CR1 |= SPI_CR1_SPE;
+    digitalWrite(GPIOB, DISPLAY_CS, 0);
+    // SPI1->CR1 |= SPI_CR1_SPE;
     SPI1->DR = send;
 
     // Wait until message has been transmitted
-    while(!(SPI1->SR & SPI_SR_TXE));
-    SPI1->CR1 &= ~(SPI_CR1_SPE_Msk);
+    while(!(SPI1->SR & SPI_SR_RXNE));
+
+    // Read to clear the RXNE flag
+    volatile uint16_t reg = SPI1->DR;
+    
+    // SPI1->CR1 &= ~(SPI_CR1_SPE_Msk);
     digitalWrite(GPIOB, DISPLAY_CS, 1);
 }
 // /* Transmits a character (1 byte) over SPI and returns the received character.
