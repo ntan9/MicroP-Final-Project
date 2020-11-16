@@ -35,20 +35,20 @@ void initADCInterrupt() {
 
 // Waits for gameDelay time to get input from user
 void waitForInput(uint32_t gameDelay) {
-	uint32_t baselineADC = read_ADC(ADC1);
+	// uint32_t baselineADC = read_ADC(ADC1);
 	// calibrate_ADC(ADC1);
 	// begin_ADC_conversion(ADC1);
 	char msg[64];
-	while (gameDelay > 0) {
+	while (gameDelay > 0 && input == 0) {
 		uint8_t temp = 0;
 		uint8_t shake = SHAKE_IT * detectMotion(I2C1);
 		// sprintf(msg, "ADC Value: %d\n\r", read_ADC(ADC1));
 		// sendString(USART2, msg);
 		// read_ADC(ADC1);
-		if(read_ADC(ADC1) > baselineADC + 1000) {
-			input = SHOUT_IT;
-			return;
-		}
+		// if(read_ADC(ADC1) > baselineADC + 1000) {
+		// 	input = SHOUT_IT;
+		// 	return;
+		// }
 		if (task == HEAT_IT) {
 			temp = (getTemperature() > (currTemp + 10));
 			temp *= HEAT_IT;
@@ -157,10 +157,9 @@ int main(void) {
 	// displayInit();
 
 	// Enable interrupts globally
-	__enable_irq();
+	// __enable_irq();
 
 	gameStarted = 0;
-	input = 0;
 
 	srand(time(NULL));
 
@@ -213,33 +212,23 @@ int main(void) {
 		// Main game functionality
 		while(1) {
 
-			
-
-
 			// Clear user input and selects a random command for task
 			input = 0;
 			task = SHOUT_IT;
 			// task = commands[rand() % numCommands];
+			__enable_irq();
 			switch (task)
 			{
 			case PUSH_IT:
 				sendString(USART2, "Push It!\n\r");
 				waitForInput(gameDelay);
-				if(task != input) goto game_over;
-				++score;
-				input = 0;
-				gameDelay += GAME_DELAY_CHANGE;
 				break;
 			case SHOUT_IT:
 				sendString(USART2, "Shout It!\n\r");
-				// calibrate_ADC(ADC1);
-				// begin_ADC_conversion(ADC1);
+				calibrate_ADC(ADC1);
+				begin_ADC_conversion(ADC1);
 				waitForInput(gameDelay);
-				// stop_ADC_conversion(ADC1);
-				if(task != input) goto game_over;
-				++score;
-				input = 0;
-				gameDelay += GAME_DELAY_CHANGE;
+				stop_ADC_conversion(ADC1);
 				break;
 			case WIRE_IT:
 				sendString(USART2, "Wire It!\n\r");
@@ -257,11 +246,10 @@ int main(void) {
 
 					sendString(USART2, "Heat It!\n\r");
 					waitForInput(gameDelay/4);
-					if(task != input) goto game_over;
-					++score;
-					gameDelay += GAME_DELAY_CHANGE;
 					break;
 				} else {
+					// TODO: Why does this case exist?
+					// Don't we want to handle this before we get here?
 					break;
 				}
 
@@ -269,19 +257,14 @@ int main(void) {
 			case SHAKE_IT:
 				sendString(USART2, "Shake It!\n\r");
 				waitForInput(gameDelay);
-				if(task != input) goto game_over;
-				++score;
-				gameDelay += GAME_DELAY_CHANGE;
-
 				break;
 			default:
 				break;
 			}
-
-			// waitForInput(gameDelay);
-			// if(task != input) goto game_over;
-			// ++score;
-			// gameDelay += GAME_DELAY_CHANGE;
+			__disable_irq();
+			if(task != input) goto game_over;
+			++score;
+			gameDelay += GAME_DELAY_CHANGE;
 		}
 		
 game_over:
