@@ -4,6 +4,8 @@
 #include "STM32F401RE_SPI.h"
 #include "STM32F401RE_RCC.h"
 #include "STM32F401RE_GPIO.h"
+#include "bitmaps.h"
+#include "main.h"
 
 #define DISPLAY_WIDTH       84
 #define DISPLAY_HEIGHT      48
@@ -162,6 +164,22 @@ void displaySend(uint8_t command, uint8_t send) {
 void writePixel(uint8_t x, uint8_t y, uint8_t val) {
     if(val) DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] |= val << (y % 8);
     else DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] &= ~(1 << (y % 8));
+}
+
+void displayCommand(uint8_t command) {
+    switch (command) {
+        case PUSH_IT:
+            memcpy(DISPLAYMEM, Push_it_bitmap, sizeof(DISPLAYMEM));
+        case WIRE_IT:
+            memcpy(DISPLAYMEM, Wire_it_bitmap, sizeof(DISPLAYMEM));
+        case HEAT_IT:
+            memcpy(DISPLAYMEM, Heat_it_bitmap, sizeof(DISPLAYMEM));
+        case SHAKE_IT:
+            memcpy(DISPLAYMEM, Shake_it_bitmap, sizeof(DISPLAYMEM));
+        case SHOUT_IT:
+            memcpy(DISPLAYMEM, Shout_it_bitmap, sizeof(DISPLAYMEM));
+    }
+    updateDisplay();
 }
 
 void updateDisplay() {

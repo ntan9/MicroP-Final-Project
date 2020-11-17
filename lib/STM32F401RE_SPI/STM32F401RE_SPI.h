@@ -40,6 +40,11 @@ void displaySend(uint8_t command, uint8_t send);
 /* Write a single bit on the display */
 void writePixel(uint8_t x, uint8_t y, uint8_t val);
 
+/* Use bitmaps defined in bitmaps.h to write
+ * commands to the display
+ */
+void displayCommand(uint8_t command);
+
 /* Update all pixels on the display */
 void updateDisplay();
 
