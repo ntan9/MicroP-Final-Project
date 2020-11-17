@@ -27,10 +27,8 @@ void initPushButton() {
 	__NVIC_EnableIRQ(40);                   // Enable External Line[15:10] Interrupts
 }
 
-void initADCInterrupt() {	
-	// ADC->CSR |= ADC_CSR_AWD1;
-	// ADC->HTR |= ADC_HTR_HT;
-    	__NVIC_EnableIRQ(18);
+void initADCInterrupt() {
+    	__NVIC_EnableIRQ(ADC_IRQn);
 }
 
 // Waits for gameDelay time to get input from user
@@ -151,10 +149,10 @@ int main(void) {
 	//////////////////////
 	// Display SPI Set Up
 	//////////////////////
-	// spiInit(4, 1, 1);
-	// digitalWrite(GPIOA, 0, 0);
-	// delay_millis(TIM2, MESSAGE_DELAY);
-	// displayInit();
+	spiInit(4, 1, 1);
+	digitalWrite(GPIOA, 0, 0);
+	delay_millis(TIM2, MESSAGE_DELAY);
+	displayInit();
 
 	// Enable interrupts globally
 	// __enable_irq();
@@ -164,117 +162,117 @@ int main(void) {
 	srand(time(NULL));
 
 	// Sample loop to write "Hi" to the display (Broken)
-	// while(1) {
-	// 	delay_millis(DELAY_TIM, MESSAGE_DELAY);
-	// 	// digitalWrite(GPIOB, DISPLAY_CS, 0);
-	// 	displaySend(0, 0b00001101);
-	// 	// displaySend(1, 0b00011111);
-	// 	// displaySend(1, 0b00000100);
-	// 	// displaySend(1, 0b00011111);
-	// 	// displaySend(1, 0b00000000);
-	// 	// displaySend(1, 0b00011101);
-	// 	// digitalWrite(GPIOB, DISPLAY_CS, 1);
-	// 	delay_millis(DELAY_TIM, 1000);
-	// }
-	while (1) {
+	while(1) {
 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
-		sendString(USART2, "Push button to begin!\n\r");
-		// adc_val = read_ADC(ADC1);
-		// sprintf(msg, "ADC Value: %d\n\r", adc_val);
-		// sendString(USART2, msg);
-
-
-
-		// Wait for user to start the game
-		while(!gameStarted){
-			/* 
-			 * For some reason, without the delay line the interrupt doesn't trigger
-			 * I think this has to do with the compiler optimizing parts out
-			 */
-			delay_millis(DELAY_TIM, MESSAGE_DELAY);
-
-		}
-		         
-		// Initialize a random seed
-		srand(rand()); 
-
-		// Resets game elements
-		score = 0;
-		gameOver = 0;
-		gameDelay = GAME_DELAY;
-		ambientTemp = getTemperature();
-		numCommands = NUM_COMMANDS;
-
-		sendString(USART2, "Ready?\n\r");
-		delay_millis(DELAY_TIM, MESSAGE_DELAY);
-		sendString(USART2, "Begin!\n\r");
-
-		// Main game functionality
-		while(1) {
-
-			// Clear user input and selects a random command for task
-			input = 0;
-			task = SHOUT_IT;
-			// task = commands[rand() % numCommands];
-			__enable_irq();
-			switch (task)
-			{
-			case PUSH_IT:
-				sendString(USART2, "Push It!\n\r");
-				waitForInput(gameDelay);
-				break;
-			case SHOUT_IT:
-				sendString(USART2, "Shout It!\n\r");
-				calibrate_ADC(ADC1);
-				begin_ADC_conversion(ADC1);
-				waitForInput(gameDelay);
-				stop_ADC_conversion(ADC1);
-				break;
-			case WIRE_IT:
-				sendString(USART2, "Wire It!\n\r");
-
-				// add modified delay function to check if the accelerometer has been shook or not
-
-				break;
-			case HEAT_IT:
-				
-				// --numCommands;
-
-				currTemp = getTemperature();
-				if (currTemp <= ambientTemp + 1) {
-					// numCommands = NUM_COMMANDS;
-
-					sendString(USART2, "Heat It!\n\r");
-					waitForInput(gameDelay/4);
-					break;
-				} else {
-					// TODO: Why does this case exist?
-					// Don't we want to handle this before we get here?
-					break;
-				}
-
-				break;
-			case SHAKE_IT:
-				sendString(USART2, "Shake It!\n\r");
-				waitForInput(gameDelay);
-				break;
-			default:
-				break;
-			}
-			__disable_irq();
-			if(task != input) goto game_over;
-			++score;
-			gameDelay += GAME_DELAY_CHANGE;
-		}
-		
-game_over:
-		// Game Over Handler
-		gameStarted = 0;
-		sendString(USART2, "You Failed!\n\r");
-		sprintf(msg, "Your score was %d!\n\r", score);
-		sendString(USART2, msg);
-		delay_millis(DELAY_TIM, MESSAGE_DELAY);
+		// digitalWrite(GPIOB, DISPLAY_CS, 0);
+		displaySend(0, 0b00001101);
+		// displaySend(1, 0b00011111);
+		// displaySend(1, 0b00000100);
+		// displaySend(1, 0b00011111);
+		// displaySend(1, 0b00000000);
+		// displaySend(1, 0b00011101);
+		// digitalWrite(GPIOB, DISPLAY_CS, 1);
+		delay_millis(DELAY_TIM, 1000);
 	}
+// 	while (1) {
+// 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
+// 		sendString(USART2, "Push button to begin!\n\r");
+// 		// adc_val = read_ADC(ADC1);
+// 		// sprintf(msg, "ADC Value: %d\n\r", adc_val);
+// 		// sendString(USART2, msg);
+
+
+
+// 		// Wait for user to start the game
+// 		while(!gameStarted){
+// 			/* 
+// 			 * For some reason, without the delay line the interrupt doesn't trigger
+// 			 * I think this has to do with the compiler optimizing parts out
+// 			 */
+// 			delay_millis(DELAY_TIM, MESSAGE_DELAY);
+
+// 		}
+		         
+// 		// Initialize a random seed
+// 		srand(rand()); 
+
+// 		// Resets game elements
+// 		score = 0;
+// 		gameOver = 0;
+// 		gameDelay = GAME_DELAY;
+// 		ambientTemp = getTemperature();
+// 		numCommands = NUM_COMMANDS;
+
+// 		sendString(USART2, "Ready?\n\r");
+// 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
+// 		sendString(USART2, "Begin!\n\r");
+
+// 		// Main game functionality
+// 		while(1) {
+
+// 			// Clear user input and selects a random command for task
+// 			input = 0;
+// 			task = SHOUT_IT;
+// 			// task = commands[rand() % numCommands];
+// 			__enable_irq();
+// 			switch (task)
+// 			{
+// 			case PUSH_IT:
+// 				sendString(USART2, "Push It!\n\r");
+// 				waitForInput(gameDelay);
+// 				break;
+// 			case SHOUT_IT:
+// 				sendString(USART2, "Shout It!\n\r");
+// 				calibrate_ADC(ADC1);
+// 				begin_ADC_conversion(ADC1);
+// 				waitForInput(gameDelay);
+// 				stop_ADC_conversion(ADC1);
+// 				break;
+// 			case WIRE_IT:
+// 				sendString(USART2, "Wire It!\n\r");
+
+// 				// add modified delay function to check if the accelerometer has been shook or not
+
+// 				break;
+// 			case HEAT_IT:
+				
+// 				// --numCommands;
+
+// 				currTemp = getTemperature();
+// 				if (currTemp <= ambientTemp + 1) {
+// 					// numCommands = NUM_COMMANDS;
+
+// 					sendString(USART2, "Heat It!\n\r");
+// 					waitForInput(gameDelay/4);
+// 					break;
+// 				} else {
+// 					// TODO: Why does this case exist?
+// 					// Don't we want to handle this before we get here?
+// 					break;
+// 				}
+
+// 				break;
+// 			case SHAKE_IT:
+// 				sendString(USART2, "Shake It!\n\r");
+// 				waitForInput(gameDelay);
+// 				break;
+// 			default:
+// 				break;
+// 			}
+// 			__disable_irq();
+// 			if(task != input) goto game_over;
+// 			++score;
+// 			gameDelay += GAME_DELAY_CHANGE;
+// 		}
+		
+// game_over:
+// 		// Game Over Handler
+// 		gameStarted = 0;
+// 		sendString(USART2, "You Failed!\n\r");
+// 		sprintf(msg, "Your score was %d!\n\r", score);
+// 		sendString(USART2, msg);
+// 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
+// 	}
 }
 
 /*

@@ -8,7 +8,7 @@ void initADC(ADC_TypeDef *A2D, GPIO_TypeDef *GPIO, uint8_t pin, uint8_t sample) 
     A2D->CR2 |= ADC_CR2_ADON;   // Power on ADC
     A2D->CR2 |= ADC_CR2_EOCS;   // Set software conversion management
 
-    A2D->SQR1 &= (0b0000 << ADC_SQR1_L_Pos); // Only do conversion on one channel
+    A2D->SQR1 &= ~(0b1111 << ADC_SQR1_L_Pos); // Only do conversion on one channel
     A2D->CR2 |= ADC_CR2_CONT;   // Continuous conversion mode
 
     // Enable watchdog
@@ -16,7 +16,7 @@ void initADC(ADC_TypeDef *A2D, GPIO_TypeDef *GPIO, uint8_t pin, uint8_t sample) 
     // A2D->CR1 |= ADC_CR1_JAWDEN;  // Enable watchdog on injected channels
     // A2D->CR1 |= ADC_CR1_AWDSGL;  // Enable watchdog on a single channel in scan mode
     // // Enable watchdog interrupt enable
-    // A2D->CR1 |= ADC_CR1_AWDIE;
+    A2D->CR1 |= ADC_CR1_AWDIE;
     // Set watchdog on input channel 0
     A2D->CR1 &= ~(ADC_CR1_AWDCH_Msk);
 
