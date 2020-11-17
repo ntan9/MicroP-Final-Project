@@ -37,6 +37,12 @@ void spiInit(uint32_t clkdivide, uint32_t cpol, uint32_t ncpha);
 /* Write a single byte to the board */
 void displaySend(uint8_t command, uint8_t send);
 
+/* Write a single bit on the display */
+void writePixel(uint8_t x, uint8_t y, uint8_t val);
+
+/* Update all pixels on the display */
+void updateDisplay();
+
 /* Transmits a character (1 byte) over SPI and returns the received character.
  *    -- send: the character to send over SPI
  *    -- return: the character received over SPI */
