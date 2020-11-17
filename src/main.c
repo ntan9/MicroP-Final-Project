@@ -1,5 +1,7 @@
 #include "main.h"
 
+#define VOP_VAL 80
+
 uint8_t gameStarted;                // Tracks if the game has started or not
 uint8_t gameOver;                   // 
 uint32_t gameDelay;                 // Tracks the amount of game will delay after each turn
@@ -71,22 +73,34 @@ void waitForInput(uint32_t gameDelay) {
 
 // Initialize the LCD Display
 void displayInit(void) {
-	digitalWrite(GPIOA, 0, 1);
+	// Power on the display
+	digitalWrite(GPIOA, 1, 1);
+
+	// Send reset pulse
 	digitalWrite(GPIOB, DISPLAY_RESET, 0);
 	delay_micros(TIM2, 100);
 	digitalWrite(GPIOB, DISPLAY_RESET, 1);
+	
 	digitalWrite(GPIOB, DISPLAY_CS, 1);
+
+	// Set Power Down = 0, V to 0, and H to 1 (extended instruction set)
+	displaySend(0, 0b00100001);
+	// Set Vop
+	displaySend(0, 0b10000000 + VOP_VAL);
 	// Set Power Down = 0, V to 0 (horizontal addressing), and H to 0 (normal instruction mode)
 	displaySend(0, 0b00100000);
 	// Set display configuration to normal mode
 	displaySend(0, 0b00001100);
-	// Writing pins according to how they do it in the Demo
-	// displaySend(1, 0x21);
-	// displaySend(1, 0xB0);
-	// displaySend(1, 0x04);
-	// displaySend(1, 0x14);
-	// displaySend(1, 0x20);
-	// displaySend(1, 0x0c);
+
+	// displaySend(1, 0b00011111);
+	// displaySend(1, 0b00000101);
+	// displaySend(1, 0b00000111);
+	// displaySend(1, 0b00000000);
+	// displaySend(1, 0b00011111);
+	// displaySend(1, 0b00000100);
+	// displaySend(1, 0b00011111);
+	// displaySend(0, 0b00001101);
+
 }
 
 /**
@@ -151,13 +165,13 @@ int main(void) {
 	//////////////////////
 	// Display SPI Set Up
 	//////////////////////
-	// spiInit(4, 1, 1);
-	// digitalWrite(GPIOA, 0, 0);
-	// delay_millis(TIM2, MESSAGE_DELAY);
-	// displayInit();
+	spiInit(4, 1, 1);
+	digitalWrite(GPIOA, 1, GPIO_OUTPUT);
+	delay_millis(TIM2, MESSAGE_DELAY);
+	displayInit();
 
 	// Enable interrupts globally
-	// __enable_irq();
+	__enable_irq();
 
 	gameStarted = 0;
 
@@ -165,16 +179,45 @@ int main(void) {
 
 	// Sample loop to write "Hi" to the display (Broken)
 	// while(1) {
-	// 	delay_millis(DELAY_TIM, MESSAGE_DELAY);
-	// 	// digitalWrite(GPIOB, DISPLAY_CS, 0);
-	// 	displaySend(0, 0b00001101);
-	// 	// displaySend(1, 0b00011111);
-	// 	// displaySend(1, 0b00000100);
-	// 	// displaySend(1, 0b00011111);
-	// 	// displaySend(1, 0b00000000);
-	// 	// displaySend(1, 0b00011101);
-	// 	// digitalWrite(GPIOB, DISPLAY_CS, 1);
-	// 	delay_millis(DELAY_TIM, 1000);
+	// 	for(int x = 0; x < 84; ++x) {
+	// 		for(int y = 0; y < 48; ++y) {
+	// 			writePixel(x, y, 1);
+	// 			updateDisplay();
+	// 			delay_millis(TIM2, 5);
+	// 		}
+	// 	}
+	// 	// updateDisplay();
+	// 	for(int x = 0; x < 84; ++x) {
+	// 		for(int y = 0; y < 48; ++y) {
+	// 			writePixel(x, y, 0);
+	// 			updateDisplay();
+	// 			delay_millis(TIM2, 5);
+	// 		}
+	// 	}
+		// updateDisplay();
+		// sendString(USART2, "FINISHED LOOP\n\r");
+		// for(int i = 0; i < 200; i += 10) {
+		// 	displaySend(0, 0b00100001);
+		// 	displaySend(0, 0b10000000 + i);
+		// 	displaySend(0, 0b00100000);
+		// 	displaySend(0, 0b00001101);
+		// 	sprintf(msg, "I = %d\n\r", i);
+		// 	sendString(USART2, msg);
+		// 	delay_millis(DELAY_TIM, 1000);
+		// 	displaySend(0, 0b00001100);
+		// 	delay_millis(DELAY_TIM, 1000);
+		// }
+		// delay_millis(DELAY_TIM, MESSAGE_DELAY);
+		// digitalWrite(GPIOB, DISPLAY_CS, 0);
+		// displaySend(0, 0b00001101);
+		// displaySend(1, 0b00011111);
+		// displaySend(1, 0b00000100);
+		// displaySend(1, 0b00011111);
+		// displaySend(1, 0b00000000);
+		// displaySend(1, 0b00011101);
+		// digitalWrite(GPIOB, DISPLAY_CS, 1);
+		// delay_millis(DELAY_TIM, 1000);
+		// displaySend(0, 0b00001100);
 	// }
 	while (1) {
 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
