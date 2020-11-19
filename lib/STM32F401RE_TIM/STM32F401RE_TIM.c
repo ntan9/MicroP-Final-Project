@@ -4,6 +4,17 @@
 #include "STM32F401RE_TIM.h"
 #include "STM32F401RE_RCC.h"
 
+const int success[][2] = {
+  {2349, 125}, {2489, 125}, {3135, 125}, {0, 10}
+};
+
+const int gameOver[][2] = {
+  {155, 375}, {0, 125}, {146, 125}, {0, 125},
+  {138, 125}, {0, 125}, {155, 125}, {0, 125},
+  {110, 125}, {0, 125}, {98, 500}, {0, 10}
+};
+
+
 void initTIM(TIM_TypeDef * TIMx){
   // Set prescaler to give 1 µs time base
   uint32_t psc_div = (uint32_t) ((SystemCoreClock/1e6)-1);
@@ -35,31 +46,51 @@ void delay_micros(TIM_TypeDef * TIMx, uint32_t us){
 }
 
 void configMusicTIM(TIM_TypeDef * TIMx) {
-  // Enable TIM2 counter and select CLK_INT as timer clock
+  // Enable TIM counter and select CLK_INT as timer clock
     TIMx->CR1 |= 1 << TIM_CR1_CEN_Pos;
 
     // Initialize TIM2 attributes
-    TIMx->CCR1 = 5;
+    TIMx->CCR4 = 5;
     TIMx->ARR = 4;
     TIMx->PSC = 2;
 
-    // Config CH1
-    TIMx->CCMR1 |= (0b111 << TIM_CCMR1_OC1M_Pos);   // Set PWM mode 2 -> (ARR >= CCR1) then PWM is on         
-    TIMx->CCER |= (1 << TIM_CCER_CC1E);   // Enable CH1
+    // Config CH4
+    TIMx->CCMR2 |= (0b111 << TIM_CCMR2_OC4M_Pos);   // Set PWM mode 2 -> (ARR >= CCR4) then PWM is on
+    TIMx->CCER |= (1 << TIM_CCER_CC4E_Pos);         // Enable CH4
 
-    TIMx->CR1 |= (1 << TIM_ARR_ARR_Pos);  // Allow ARR reg to be buffered        
-    TIMx->EGR |= 1 << TIM_EGR_UG_Pos;             // Initialize preloaded registers   
+    TIMx->CR1 |= (1 << TIM_CR1_ARPE_Pos);           // Allow ARR reg to be buffered        
+    TIMx->EGR |= (1 << TIM_EGR_UG_Pos);             // Initialize preloaded registers   
 }
 
 void setFreq(TIM_TypeDef * TIMx, int freq) {
   // If freq is 0, set CCR1 to be greater than ARR
     if (freq == 0) {
-        TIMx->CCR1 = TIMx->ARR + 1; 
+        TIMx->CCR4 = TIMx->ARR + 1; 
     } else {
         // Adjust ARR and CCR1 to create the intended freq
         int clk = SystemCoreClock;
         int divider = clk / freq;
         TIMx->ARR = divider;
-        TIMx->CCR1 = divider / 2;
+        TIMx->CCR4 = divider / 2;
     }
+}
+
+// Play music through the TIM5 timer based on which mode
+void playMusic(int mode) {
+  switch (mode) {
+  case GAME_OVER:
+    for (int i = 0; i < GAME_OVER; ++i) {
+      setFreq(TIM5, gameOver[i][0]);
+      delay_millis(TIM2, gameOver[i][1]);
+    }
+    break;
+  case SUCCESS:
+    for (int i = 0; i < SUCCESS; ++i) {
+      setFreq(TIM5, success[i][0]);
+      delay_millis(TIM2, success[i][1]);
+    }
+    break;
+  default:
+    break;
+  }
 }

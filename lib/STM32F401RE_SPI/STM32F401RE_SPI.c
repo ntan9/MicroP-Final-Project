@@ -5,7 +5,7 @@
 #include "STM32F401RE_RCC.h"
 #include "STM32F401RE_GPIO.h"
 #include "bitmaps.h"
-#include "main.h"
+// #include "main.h"
 
 #define DISPLAY_WIDTH       84
 #define DISPLAY_HEIGHT      48

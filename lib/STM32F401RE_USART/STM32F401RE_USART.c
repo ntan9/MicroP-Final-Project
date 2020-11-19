@@ -41,12 +41,12 @@ USART_TypeDef * initUSART(uint8_t USART_ID, uint32_t baud_rate){
 
             // Configure pin modes as ALT function
             pinMode(GPIOA, GPIO_PA2, GPIO_ALT); // TX
-            pinMode(GPIOA, GPIO_PA3, GPIO_ALT); // RX
+            // pinMode(GPIOA, GPIO_PA3, GPIO_ALT); // RX
 
             // Configure pin modes as ALT function
             GPIOA->AFR[0] &= ~(GPIO_AFRL_AFSEL2_Msk | GPIO_AFRL_AFSEL3_Msk);
             // Configure correct alternate functions (AF07)
-            GPIOA->AFR[0] |= (0b0111 << GPIO_AFRL_AFSEL2_Pos | 0b0111 << GPIO_AFRL_AFSEL3_Pos);
+            GPIOA->AFR[0] |= (0b0111 << GPIO_AFRL_AFSEL2_Pos);
             break;
     }
 
