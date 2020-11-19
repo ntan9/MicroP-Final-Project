@@ -21,6 +21,7 @@
 
 #define PUSH_BUTTON 13
 #define DELAY_TIM TIM2
+#define SOUND_TIM TIM5
 
 #define PUSH_IT 1
 #define SHOUT_IT 2
