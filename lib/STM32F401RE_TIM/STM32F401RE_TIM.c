@@ -47,7 +47,7 @@ void delay_micros(TIM_TypeDef * TIMx, uint32_t us){
 
 void configMusicTIM(TIM_TypeDef * TIMx) {
   // Enable TIM counter and select CLK_INT as timer clock
-    TIMx->CR1 |= 1 << TIM_CR1_CEN_Pos;
+    TIMx->CR1 |= TIM_CR1_CEN;
 
     // Initialize TIM2 attributes
     TIMx->CCR4 = 5;
@@ -56,10 +56,12 @@ void configMusicTIM(TIM_TypeDef * TIMx) {
 
     // Config CH4
     TIMx->CCMR2 |= (0b111 << TIM_CCMR2_OC4M_Pos);   // Set PWM mode 2 -> (ARR >= CCR4) then PWM is on
-    TIMx->CCER |= (1 << TIM_CCER_CC4E_Pos);         // Enable CH4
+    TIMx->CCMR2 |= TIM_CCMR2_OC4PE;                 // Preload register on CCR4
+    TIMx->CCER |= TIM_CCER_CC4E;                    // Enable CH4
 
-    TIMx->CR1 |= (1 << TIM_CR1_ARPE_Pos);           // Allow ARR reg to be buffered        
-    TIMx->EGR |= (1 << TIM_EGR_UG_Pos);             // Initialize preloaded registers   
+    TIMx->CR1 |= TIM_CR1_ARPE;           // Allow ARR reg to be buffered 
+
+    TIMx->EGR |= TIM_EGR_UG;             // Initialize preloaded registers   
 }
 
 void setFreq(TIM_TypeDef * TIMx, int freq) {
@@ -68,11 +70,12 @@ void setFreq(TIM_TypeDef * TIMx, int freq) {
         TIMx->CCR4 = TIMx->ARR + 1; 
     } else {
         // Adjust ARR and CCR1 to create the intended freq
-        int clk = SystemCoreClock;
+        int clk = SystemCoreClock/3;
         int divider = clk / freq;
         TIMx->ARR = divider;
         TIMx->CCR4 = divider / 2;
     }
+    TIMx->EGR |= TIM_EGR_UG;                          // Initialize preloaded registers
 }
 
 // Play music through the TIM5 timer based on which mode

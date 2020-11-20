@@ -9,7 +9,7 @@
 
 #define DISPLAY_RESET   4
 #define DISPLAY_DC      5
-#define DISPLAY_CS      3
+#define DISPLAY_CS      4
 
 
 #define PUSH_IT 1
@@ -51,7 +51,10 @@ void writePixel(uint8_t x, uint8_t y, uint8_t val);
 /* Use bitmaps defined in bitmaps.h to write
  * commands to the display
  */
-void displayCommand(uint8_t command);
+void writeCommand(uint8_t command);
+
+/* Set all pixels to 0 */
+void clearDisplay();
 
 /* Update all pixels on the display */
 void updateDisplay();

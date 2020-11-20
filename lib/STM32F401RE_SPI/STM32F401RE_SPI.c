@@ -118,17 +118,16 @@ void spiInit(uint32_t br, uint32_t cpol, uint32_t cpha) {
     
     RCC->APB2ENR |= RCC_APB2ENR_SPI1EN; // Turn on SPI1 clock domain (SPI1EN bit in APB2ENR)
     // Initially assigning SPI pins
-    pinMode(GPIOA, 5, GPIO_ALT); // PA5, Arduino D13, SPI1_SCK
+    pinMode(GPIOB, 3, GPIO_ALT); // PB3, Arduino D13, SPI1_SCK
     pinMode(GPIOA, 7, GPIO_ALT); // PA7, Arduino D11, SPI1_MOSI
-    pinMode(GPIOA, 4, GPIO_ALT); // PA4, Arduino A2, SPI1_NSS
-    pinMode(GPIOB, DISPLAY_CS, GPIO_OUTPUT); // Default: PB3, Arduino D3, Manual CS
+    pinMode(GPIOA, DISPLAY_CS, GPIO_OUTPUT); // Default: PA4, Arduino A2, Manual CS
     pinMode(GPIOB, DISPLAY_DC, GPIO_OUTPUT); // Default: PB5, Arduino D4, Manual D/C select (DISPLAY)
     pinMode(GPIOB, DISPLAY_RESET, GPIO_OUTPUT); // Default: PB4, Arduino D5, Manual Reset (DISPLAY)
     // pinMode(GPIOA, 0, GPIO_OUTPUT);
 
     // Set to AF05 for SPI alternate functions
-    GPIOA->AFR[0] |= (5 << GPIO_AFRL_AFSEL5_Pos | 5 << GPIO_AFRL_AFSEL7_Pos | 5 << GPIO_AFRL_AFSEL4_Pos);
-
+    GPIOA->AFR[0] |= (5 << GPIO_AFRL_AFSEL7_Pos);
+    GPIOB->AFR[0] |= (5 << GPIO_AFRL_AFSEL3_Pos);
     // Set all relevant bits to 0
     SPI1->CR1 &= ~(SPI_CR1_BR_Msk | SPI_CR1_CPOL_Msk | SPI_CR1_CPHA_Msk | SPI_CR1_LSBFIRST_Msk |
                 SPI_CR1_DFF_Msk | SPI_CR1_SSM_Msk | SPI_CR1_MSTR_Msk | SPI_CR1_SPE_Msk);
@@ -147,7 +146,7 @@ void spiInit(uint32_t br, uint32_t cpol, uint32_t cpha) {
 
 void displaySend(uint8_t command, uint8_t send) {
     digitalWrite(GPIOB, DISPLAY_DC, command);
-    digitalWrite(GPIOB, DISPLAY_CS, 0);
+    digitalWrite(GPIOA, DISPLAY_CS, 0);
     // SPI1->CR1 |= SPI_CR1_SPE;
     SPI1->DR = send;
 
@@ -158,7 +157,7 @@ void displaySend(uint8_t command, uint8_t send) {
     volatile uint16_t reg = SPI1->DR;
     
     // SPI1->CR1 &= ~(SPI_CR1_SPE_Msk);
-    digitalWrite(GPIOB, DISPLAY_CS, 1);
+    digitalWrite(GPIOA, DISPLAY_CS, 1);
 }
 
 void writePixel(uint8_t x, uint8_t y, uint8_t val) {
@@ -166,18 +165,34 @@ void writePixel(uint8_t x, uint8_t y, uint8_t val) {
     else DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] &= ~(1 << (y % 8));
 }
 
-void displayCommand(uint8_t command) {
+void writeCommand(uint8_t command) {
     switch (command) {
         case PUSH_IT:
             memcpy(DISPLAYMEM, Push_it_bitmap, sizeof(DISPLAYMEM));
+            break;
         case WIRE_IT:
             memcpy(DISPLAYMEM, Wire_it_bitmap, sizeof(DISPLAYMEM));
+            break;
         case HEAT_IT:
             memcpy(DISPLAYMEM, Heat_it_bitmap, sizeof(DISPLAYMEM));
+            break;
         case SHAKE_IT:
             memcpy(DISPLAYMEM, Shake_it_bitmap, sizeof(DISPLAYMEM));
+            break;
         case SHOUT_IT:
             memcpy(DISPLAYMEM, Shout_it_bitmap, sizeof(DISPLAYMEM));
+            break;
+        default:
+            break;
+    }
+}
+
+void clearDisplay() {
+    int x, y;
+    for (x = 0; x < DISPLAY_WIDTH; ++x) {
+        for (y = 0; y < DISPLAY_HEIGHT; ++y) {
+            writePixel(x, y, 0);
+        }
     }
     updateDisplay();
 }

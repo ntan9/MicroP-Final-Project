@@ -11,7 +11,7 @@ uint8_t input;                      // Stores the user's registered input
 int numCommands;                    // Used to generate random int of range [0, numCommands)
 
 uint16_t ambientTemp;               // Stores the ambient room temperature when the game starts
-uint16_t currTemp;					// Stores current temperature when "Heat It" is issued
+uint16_t currTemp;		    // Stores current temperature when "Heat It" is issued
 
 
 // All commands that the game will support
@@ -79,7 +79,7 @@ void displayInit(void) {
 	delay_micros(TIM2, 100);
 	digitalWrite(GPIOB, DISPLAY_RESET, 1);
 	
-	digitalWrite(GPIOB, DISPLAY_CS, 1);
+	digitalWrite(GPIOA, DISPLAY_CS, 1);
 
 	// Set Power Down = 0, V to 0, and H to 1 (extended instruction set)
 	displaySend(0, 0b00100001);
@@ -89,16 +89,6 @@ void displayInit(void) {
 	displaySend(0, 0b00100000);
 	// Set display configuration to normal mode
 	displaySend(0, 0b00001100);
-
-	// displaySend(1, 0b00011111);
-	// displaySend(1, 0b00000101);
-	// displaySend(1, 0b00000111);
-	// displaySend(1, 0b00000000);
-	// displaySend(1, 0b00011111);
-	// displaySend(1, 0b00000100);
-	// displaySend(1, 0b00011111);
-	// displaySend(0, 0b00001101);
-
 }
 
 /**
@@ -128,14 +118,18 @@ int main(void) {
 	// Init USART2 for displaying messages and TIM2 for delay timer
 	initUSART(USART2_ID, 115200);               // Initialize USART2 to print to terminal
 	initTIM(DELAY_TIM);                         // Initialize TIM2
+	
 	configMusicTIM(SOUND_TIM);
 
 	// Enable channel 4 for TIM5
 	pinMode(GPIOA, 3, GPIO_ALT);
 	GPIOA->AFR[0] |= (2 << GPIO_AFRL_AFSEL3_Pos);
 
-
+	setFreq(SOUND_TIM, 100);
+	delay_millis(TIM2, 1000);
 	playMusic(SUCCESS);
+	delay_millis(TIM2, 100);
+	playMusic(GAME_OVER);
 
 	////////////////////
 	// ADC Set Up
@@ -187,63 +181,6 @@ int main(void) {
 
 	srand(time(NULL));
 
-	// Sample loop to write "Hi" to the display (Broken)
-	// while(1) {
-	// 	for(int x = 0; x < 84; ++x) {
-	// 		for(int y = 0; y < 48; ++y) {
-	// 			writePixel(x, y, 1);
-	// 			updateDisplay();
-	// 			delay_millis(TIM2, 5);
-	// 		}
-	// 	}
-	// 	// updateDisplay();
-	// 	for(int x = 0; x < 84; ++x) {
-	// 		for(int y = 0; y < 48; ++y) {
-	// 			writePixel(x, y, 0);
-	// 			updateDisplay();
-	// 			delay_millis(TIM2, 5);
-	// 		}
-	// 	}
-
-		// updateDisplay();
-		// sendString(USART2, "FINISHED LOOP\n\r");
-		// for(int i = 0; i < 200; i += 10) {
-		// 	displaySend(0, 0b00100001);
-		// 	displaySend(0, 0b10000000 + i);
-		// 	displaySend(0, 0b00100000);
-		// 	displaySend(0, 0b00001101);
-		// 	sprintf(msg, "I = %d\n\r", i);
-		// 	sendString(USART2, msg);
-		// 	delay_millis(DELAY_TIM, 1000);
-		// 	displaySend(0, 0b00001100);
-		// 	delay_millis(DELAY_TIM, 1000);
-		// }
-		// delay_millis(DELAY_TIM, MESSAGE_DELAY);
-		// digitalWrite(GPIOB, DISPLAY_CS, 0);
-		// displaySend(0, 0b00001101);
-		// displaySend(1, 0b00011111);
-		// displaySend(1, 0b00000100);
-		// displaySend(1, 0b00011111);
-		// displaySend(1, 0b00000000);
-		// displaySend(1, 0b00011101);
-		// digitalWrite(GPIOB, DISPLAY_CS, 1);
-		// delay_millis(DELAY_TIM, 1000);
-		// displaySend(0, 0b00001100);
-	// }
-
-	// while (1) {
-	// 	delay_millis(DELAY_TIM, MESSAGE_DELAY);
-	// 	// digitalWrite(GPIOB, DISPLAY_CS, 0);
-	// 	displaySend(0, 0b00001101);
-	// 	// displaySend(1, 0b00011111);
-	// 	// displaySend(1, 0b00000100);
-	// 	// displaySend(1, 0b00011111);
-	// 	// displaySend(1, 0b00000000);
-	// 	// displaySend(1, 0b00011101);
-	// 	// digitalWrite(GPIOB, DISPLAY_CS, 1);
-	// 	delay_millis(DELAY_TIM, 1000);
-	// }
-
 	while (1) {
 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
 		sendString(USART2, "Push button to begin!\n\r");
@@ -290,7 +227,10 @@ int main(void) {
 			} else {
 				task = commands[rand() % (numCommands - 1)];
 			}
-
+			task = WIRE_IT;
+			writeCommand(task);
+			updateDisplay();
+			__enable_irq();
 			// Handles different tasks
 			switch (task)
 			{
@@ -307,9 +247,7 @@ int main(void) {
 				break;
 			case WIRE_IT:
 				sendString(USART2, "Wire It!\n\r");
-
 				// add modified delay function to check if the accelerometer has been shook or not
-
 				input = WIRE_IT;	// Place holder for Wire_it
 
 				break;
@@ -327,7 +265,7 @@ int main(void) {
 
 			// Processes user input
 			if(task != input) goto game_over;
-
+			__disable_irq();
 			// Play victory tone, update game state
 			playMusic(SUCCESS);
 			++score;
