@@ -26,7 +26,19 @@ void initPushButton() {
 	EXTI->IMR |= EXTI_IMR_IM13;             // Configure IM13 mask bit
 	EXTI->RTSR &= ~(EXTI_RTSR_TR13_Msk);    // Disable rising edge trigger
 	EXTI->FTSR |= EXTI_FTSR_TR13;           // Enable falling edge trigger
-	__NVIC_EnableIRQ(40);                   // Enable External Line[15:10] Interrupts
+	__NVIC_EnableIRQ(EXTI15_10_IRQn);       // Enable External Line[15:10] Interrupts
+}
+
+void initWireIt() {
+	pinMode(GPIOA, WIRE_IT_PIN, GPIO_INPUT);
+
+	// Set EXTICR2 for PA5
+	SYSCFG->EXTICR[1] &= ~(SYSCFG_EXTICR2_EXTI5_Msk);
+
+	EXTI->IMR |= EXTI_IMR_IM5;		// Configure IM5 mask bit
+	EXTI->RTSR |= EXTI_RTSR_TR5_Msk;	// Enable rising edge trigger
+	EXTI->FTSR &= ~(EXTI_FTSR_TR5);		// Disable falling edge trigger
+	__NVIC_EnableIRQ(EXTI9_5_IRQn);		// Enable External Line[9:5] Interrupts
 }
 
 void initADCInterrupt() {
@@ -144,7 +156,7 @@ int main(void) {
 	/////////////////////
 
 	initPushButton();
-	pinMode(GPIOC, 13, GPIO_INPUT);             // PC13 is Nucleo Push Button
+	pinMode(GPIOC, PUSH_BUTTON, GPIO_INPUT);             // PC13 is Nucleo Push Button
 
 	///////////////////
 	// I2C1 Set up
@@ -174,6 +186,12 @@ int main(void) {
 	delay_millis(TIM2, MESSAGE_DELAY);
 	displayInit();
 
+	//////////////////////
+	// Wire it setup
+	//////////////////////
+
+	initWireIt();
+
 	// Enable interrupts globally
 	__enable_irq();
 
@@ -184,9 +202,6 @@ int main(void) {
 	while (1) {
 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
 		sendString(USART2, "Push button to begin!\n\r");
-		// adc_val = read_ADC(ADC1);
-		// sprintf(msg, "ADC Value: %d\n\r", adc_val);
-		// sendString(USART2, msg);
 
 
 		// Wait for user to start the game
@@ -247,9 +262,7 @@ int main(void) {
 				break;
 			case WIRE_IT:
 				sendString(USART2, "Wire It!\n\r");
-				// add modified delay function to check if the accelerometer has been shook or not
-				input = WIRE_IT;	// Place holder for Wire_it
-
+				waitForInput(gameDelay);
 				break;
 			case HEAT_IT:
 				sendString(USART2, "Heat It!\n\r");
@@ -294,7 +307,8 @@ game_over:
  */
 
 // Push button interrupt handler
-void EXTI15_10_IRQHandler(void){
+void EXTI15_10_IRQHandler(void) {
+	// sendString(USART2, "PUSHED IT!\n\r");
 	// Check that the button EXTI_13 was what triggered our interrupt
 	if (EXTI->PR & (1 << PUSH_BUTTON)){
 		// Clear Interrupt
@@ -306,13 +320,24 @@ void EXTI15_10_IRQHandler(void){
 			input = PUSH_IT;
 			DELAY_TIM->EGR |= TIM_EGR_UG;    // Write bit to clear the delay timer
 		}
-		// sendString(USART2, "Push it!\n\r");
+	}
+}
+
+// Wire it interrupt handler
+void EXTI9_5_IRQHandler(void) {
+	// sendString(USART2, "WIRED IT!\n\r");
+	// Check that the button EXTI_5 was what triggered our interrupt
+	if(EXTI->PR & (1 << WIRE_IT_PIN)) {
+		// Clear Interrupt
+		EXTI->PR |= (1 << WIRE_IT_PIN);
+		input = WIRE_IT;
+		DELAY_TIM->EGR |= TIM_EGR_UG;		// Write bit to clear the delay timer
 	}
 }
 
 // ADC interrupt handler
 void ADC_IRQHandler(void) {
-	sendString(USART2, "SHOUTED IT!\n\r");
+	// sendString(USART2, "SHOUTED IT!\n\r");
 	if(ADC1->SR & ADC_SR_AWD) {
 		// Disable watchdog interrupt enable
     		ADC1->CR1 &= ~ADC_CR1_AWDIE;
