@@ -47,20 +47,12 @@ void initADCInterrupt() {
 
 // Waits for gameDelay time to get input from user
 void waitForInput(uint32_t gameDelay) {
-	// uint32_t baselineADC = read_ADC(ADC1);
-	// calibrate_ADC(ADC1);
-	// begin_ADC_conversion(ADC1);
 	char msg[64];
 	while (gameDelay > 0 && input == 0) {
 		uint8_t temp = 0;
 		uint8_t shake = SHAKE_IT * detectMotion(I2C1);
-		// sprintf(msg, "ADC Value: %d\n\r", read_ADC(ADC1));
-		// sendString(USART2, msg);
-		// read_ADC(ADC1);
-		// if(read_ADC(ADC1) > baselineADC + 1000) {
-		// 	input = SHOUT_IT;
-		// 	return;
-		// }
+		read_ADC(ADC1);
+
 		if (task == HEAT_IT) {
 			temp = (getTemperature() > (currTemp + 10));
 			temp *= HEAT_IT;
@@ -147,7 +139,7 @@ int main(void) {
 	// ADC Set Up
 	///////////////////
 
-	initADC(ADC1, GPIOA, 1, 6);                 // Initialize ADC to pin A1
+	initADC(ADC1, GPIOA, 1, 7);                 // Initialize ADC to pin A1
 	pinMode(GPIOA, 1, GPIO_ANALOG);             // PA1 is input for ADC
 	initADCInterrupt();
 
@@ -234,7 +226,6 @@ int main(void) {
 			// Clear user input and selects a random command for task
 			input = 0;
 
-
 			// Only add "Heat It" to pool of commands if temp is low enough
 			currTemp = getTemperature();
 			if (currTemp <= ambientTemp + 50) {
@@ -256,9 +247,7 @@ int main(void) {
 			case SHOUT_IT:
 				sendString(USART2, "Shout It!\n\r");
 				calibrate_ADC(ADC1);
-				begin_ADC_conversion(ADC1);
 				waitForInput(gameDelay);
-				stop_ADC_conversion(ADC1);
 				break;
 			case WIRE_IT:
 				sendString(USART2, "Wire It!\n\r");
@@ -284,7 +273,7 @@ int main(void) {
 			++score;
 			gameDelay += GAME_DELAY_CHANGE;
 
-			delay_millis(DELAY_TIM, 500);
+			delay_millis(DELAY_TIM, MESSAGE_DELAY);
 			// Clear flag in motion sensor
 			detectMotion(I2C1);
 		}
@@ -308,7 +297,6 @@ game_over:
 
 // Push button interrupt handler
 void EXTI15_10_IRQHandler(void) {
-	// sendString(USART2, "PUSHED IT!\n\r");
 	// Check that the button EXTI_13 was what triggered our interrupt
 	if (EXTI->PR & (1 << PUSH_BUTTON)){
 		// Clear Interrupt
@@ -325,7 +313,6 @@ void EXTI15_10_IRQHandler(void) {
 
 // Wire it interrupt handler
 void EXTI9_5_IRQHandler(void) {
-	// sendString(USART2, "WIRED IT!\n\r");
 	// Check that the button EXTI_5 was what triggered our interrupt
 	if(EXTI->PR & (1 << WIRE_IT_PIN)) {
 		// Clear Interrupt
@@ -337,12 +324,11 @@ void EXTI9_5_IRQHandler(void) {
 
 // ADC interrupt handler
 void ADC_IRQHandler(void) {
-	// sendString(USART2, "SHOUTED IT!\n\r");
 	if(ADC1->SR & ADC_SR_AWD) {
 		// Disable watchdog interrupt enable
-    	ADC1->CR1 &= ~ADC_CR1_AWDIE;
+    		ADC1->CR1 &= ~ADC_CR1_AWDIE;
 		// Clear interrupt
-		ADC1->SR &= ~(ADC_SR_AWD_Msk);
+		ADC1->SR &= ~(ADC_SR_AWD);
 
 		input = SHOUT_IT;
 		DELAY_TIM->EGR |= TIM_EGR_UG;	// Write bit to clear the delay timer

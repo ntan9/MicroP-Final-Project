@@ -32,7 +32,7 @@
 
 #define NUM_COMMANDS 5
 
-#define MESSAGE_DELAY 500
+#define MESSAGE_DELAY 1500
 #define GAME_DELAY 3000
 #define GAME_DELAY_CHANGE -5
 
