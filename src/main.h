@@ -20,6 +20,7 @@
 
 
 #define PUSH_BUTTON 13
+#define WIRE_IT_PIN 5
 #define DELAY_TIM TIM2
 #define SOUND_TIM TIM5
 
