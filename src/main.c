@@ -72,7 +72,7 @@ void waitForInput(uint32_t gameDelay) {
 // Initialize the LCD Display
 void displayInit(void) {
 	// Power on the display
-	digitalWrite(GPIOA, 1, 1);
+	digitalWrite(GPIOA, 3, 1);
 
 	// Send reset pulse
 	digitalWrite(GPIOB, DISPLAY_RESET, 0);
@@ -121,9 +121,9 @@ int main(void) {
 	
 	configMusicTIM(SOUND_TIM);
 
-	// Enable channel 4 for TIM5
-	pinMode(GPIOA, 3, GPIO_ALT);
-	GPIOA->AFR[0] |= (2 << GPIO_AFRL_AFSEL3_Pos);
+	// Enable channel 1 for TIM5
+	pinMode(GPIOA, 0, GPIO_ALT);
+	GPIOA->AFR[0] |= (2 << GPIO_AFRL_AFSEL0_Pos);
 
 	setFreq(SOUND_TIM, 100);
 	delay_millis(TIM2, 1000);
@@ -135,8 +135,8 @@ int main(void) {
 	// ADC Set Up
 	///////////////////
 
-	initADC(ADC1, GPIOA, 0, 6);                 // Initialize ADC to pin A0
-	pinMode(GPIOA, 0, GPIO_ANALOG);             // PA0 is input for ADC
+	initADC(ADC1, GPIOA, 1, 6);                 // Initialize ADC to pin A1
+	pinMode(GPIOA, 1, GPIO_ANALOG);             // PA1 is input for ADC
 	initADCInterrupt();
 
 	/////////////////////
@@ -170,7 +170,7 @@ int main(void) {
 	//////////////////////
 
 	spiInit(4, 1, 1);
-	digitalWrite(GPIOA, 1, GPIO_OUTPUT);
+	digitalWrite(GPIOA, 3, GPIO_OUTPUT);
 	delay_millis(TIM2, MESSAGE_DELAY);
 	displayInit();
 
@@ -227,7 +227,7 @@ int main(void) {
 			} else {
 				task = commands[rand() % (numCommands - 1)];
 			}
-			task = WIRE_IT;
+			task = SHOUT_IT;
 			writeCommand(task);
 			updateDisplay();
 			__enable_irq();
@@ -271,7 +271,7 @@ int main(void) {
 			++score;
 			gameDelay += GAME_DELAY_CHANGE;
 
-			delay_millis(DELAY_TIM, MESSAGE_DELAY);
+			delay_millis(DELAY_TIM, 500);
 			// Clear flag in motion sensor
 			detectMotion(I2C1);
 		}
@@ -315,7 +315,7 @@ void ADC_IRQHandler(void) {
 	sendString(USART2, "SHOUTED IT!\n\r");
 	if(ADC1->SR & ADC_SR_AWD) {
 		// Disable watchdog interrupt enable
-    		ADC1->CR1 &= ~ADC_CR1_AWDIE;
+    	ADC1->CR1 &= ~ADC_CR1_AWDIE;
 		// Clear interrupt
 		ADC1->SR &= ~(ADC_SR_AWD_Msk);
 
