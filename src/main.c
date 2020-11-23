@@ -129,12 +129,6 @@ int main(void) {
 	pinMode(GPIOA, 0, GPIO_ALT);
 	GPIOA->AFR[0] |= (2 << GPIO_AFRL_AFSEL0_Pos);
 
-	setFreq(SOUND_TIM, 100);
-	delay_millis(TIM2, 1000);
-	playMusic(SUCCESS);
-	delay_millis(TIM2, 100);
-	playMusic(GAME_OVER);
-
 	////////////////////
 	// ADC Set Up
 	///////////////////
@@ -216,6 +210,7 @@ int main(void) {
 		ambientTemp = getTemperature();
 		numCommands = NUM_COMMANDS;
 
+		playMusic(START);
 		sendString(USART2, "Ready?\n\r");
 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
 		sendString(USART2, "Begin!\n\r");
@@ -233,9 +228,12 @@ int main(void) {
 			} else {
 				task = commands[rand() % (numCommands - 1)];
 			}
-			task = SHOUT_IT;
+
+			// Write command to screen and play corresponging music
 			writeCommand(task);
 			updateDisplay();
+			playMusic(task);
+
 			__enable_irq();
 			// Handles different tasks
 			switch (task)
