@@ -7,8 +7,6 @@
 #include "bitmaps.h"
 // #include "main.h"
 
-#define DISPLAY_WIDTH       84
-#define DISPLAY_HEIGHT      48
 
 char DISPLAYMEM[DISPLAY_WIDTH * DISPLAY_HEIGHT] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -187,6 +185,13 @@ void writeCommand(uint8_t command) {
     }
 }
 
+void writeMessage(char *message) {
+    if(strcmp(message, "WELCOME") == 0) memcpy(DISPLAYMEM, Welcome_bitmap, sizeof(DISPLAYMEM));
+    else if(strcmp(message, "START") == 0) memcpy(DISPLAYMEM, Start_bitmap, sizeof(DISPLAYMEM));
+    else if(strcmp(message, "READY") == 0) memcpy(DISPLAYMEM, Ready_bitmap, sizeof(DISPLAYMEM));
+    else if(strcmp(message, "GAME OVER") == 0) memcpy(DISPLAYMEM, Game_over_bitmap, sizeof(DISPLAYMEM));
+}
+
 void clearDisplay() {
     int x, y;
     for (x = 0; x < DISPLAY_WIDTH; ++x) {
@@ -206,6 +211,76 @@ void updateDisplay() {
     for(int i = 0; i < DISPLAY_HEIGHT * DISPLAY_WIDTH / 8; ++i) {
         displaySend(1, DISPLAYMEM[i]);
     }
+}
+
+void writeDigit(int val,int x,int y) {
+    switch(val) {
+        case 0:
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
+            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0x81;
+            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
+            break;
+        case 1:
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
+            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
+            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
+            break;
+        case 2:
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xDF;
+            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0xDB;
+            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFB;
+            break;
+        case 3:
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xDB;
+            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0xDB;
+            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
+            break;
+        case 4:
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xF8;
+            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0x18;
+            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
+            break;
+        case 5:
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xFB;
+            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0xDB;
+            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xDF;
+            break;
+        case 6:
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
+            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0xDB;
+            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xDF;
+            break;
+        case 7:
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xC0;
+            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0xC0;
+            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
+            break;
+        case 8:
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
+            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0x99;
+            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
+            break;
+        case 9:
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xF1;
+            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0x91;
+            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
+            break;
+        default:
+    }
+}
+
+void writeScore(int val, int x, int y) {
+    displaySend(0, 0b10000000 + x);         // Set X address of Ram
+    displaySend(0, 0b01000000 + y);         // Set Y address of Ram
+    if(val % 100 >= 0) {
+        writeDigit(val / 100, x, y);
+        x += 4;
+    }
+    if(val % 10 >= 0) {
+        writeDigit((val % 100) / 10, x, y);
+        x += 4;
+    }
+    writeDigit(val % 10, x, y);
 }
 
 // /* Transmits a character (1 byte) over SPI and returns the received character.

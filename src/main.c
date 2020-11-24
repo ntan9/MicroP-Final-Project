@@ -188,7 +188,8 @@ int main(void) {
 	while (1) {
 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
 		sendString(USART2, "Push button to begin!\n\r");
-
+		writeMessage("WELCOME");
+		updateDisplay();
 
 		// Wait for user to start the game
 		while(!gameStarted){
@@ -212,9 +213,12 @@ int main(void) {
 
 		playMusic(START);
 		sendString(USART2, "Ready?\n\r");
+		writeMessage("READY");
+		updateDisplay();
 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
 		sendString(USART2, "Begin!\n\r");
-
+		writeMessage("START");
+		updateDisplay();
 		// Main game functionality
 		while(1) {
 
@@ -279,9 +283,13 @@ int main(void) {
 game_over:
 		// Game Over Handler
 		gameStarted = 0;
-		sendString(USART2, "You Failed!\n\r");
+		sendString(USART2, "Game Over!\n\r");
 		sprintf(msg, "Your score was %d!\n\r", score);
 		sendString(USART2, msg);
+
+		writeMessage("GAME OVER");
+		writeScore(score, DISPLAY_WIDTH - 12, DISPLAY_HEIGHT - 8);
+		updateDisplay();
 
 		playMusic(GAME_OVER);
 

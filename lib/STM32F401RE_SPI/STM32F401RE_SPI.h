@@ -12,6 +12,9 @@
 #define DISPLAY_CS      4
 
 
+#define DISPLAY_WIDTH       84
+#define DISPLAY_HEIGHT      48
+
 #define PUSH_IT 1
 #define SHOUT_IT 2
 #define WIRE_IT 3
@@ -53,11 +56,26 @@ void writePixel(uint8_t x, uint8_t y, uint8_t val);
  */
 void writeCommand(uint8_t command);
 
+/* Takes in a string and writes the corresponding message to the display
+ * Valid commands are:
+ *      WELCOME
+ *      READY
+ *      START
+ *      GAME OVER
+ */
+void writeMessage(char *message);
+
 /* Set all pixels to 0 */
 void clearDisplay();
 
 /* Update all pixels on the display */
 void updateDisplay();
+
+/* Writes a single digit to the location specified by x y */
+void writeDigit(int val, int x, int y);
+
+/* Writes a maximum 3 digit number to the location specified by x y */
+void writeScore(int val, int x, int y);
 
 /* Transmits a character (1 byte) over SPI and returns the received character.
  *    -- send: the character to send over SPI
