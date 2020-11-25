@@ -106,7 +106,7 @@ void read_scratchpad(uint8_t scratchpad[8]){
     volatile uint8_t crc = read_byte();
 }
 
-uint16_t getTemperature() {
+int getTemperature() {
     uint8_t scratchpad[8];
 
     // Init, skip rom, convert T
@@ -121,7 +121,20 @@ uint16_t getTemperature() {
     read_scratchpad(scratchpad);
 
     // Return the first two temperatures as one integer
-    uint16_t temp = (scratchpad[1] << 8) + scratchpad[0];
+    int temp = (scratchpad[1] << 8) + scratchpad[0];
+
+    // Remove all decimals in the temperature
+    temp = temp >> 4;
 
     return temp;
+}
+
+void initTempSensor() {
+    // Init, skip rom, write scratchpad
+    skip_rom();
+    write_byte(0x4e);
+
+    write_byte(0b01111111);     // Set Th to max
+    write_byte(0b11111111);     // Set Tl to min
+    write_byte(0b00011111);     // Configure sensor to 9 bit resolution
 }

@@ -266,6 +266,7 @@ void writeDigit(int val,int x,int y) {
             DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
             break;
         default:
+            break;
     }
 }
 

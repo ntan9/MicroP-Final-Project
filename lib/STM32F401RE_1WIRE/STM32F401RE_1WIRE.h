@@ -69,11 +69,13 @@ void read_scratchpad(uint8_t scratchpad[8]);
 /**
     Returns the 2 byte register for temperature in the MAXIM 31820
 */
-uint16_t getTemperature();
+int getTemperature();
 
 /**
     Runs init command, followed by a skip rom command
 */
 void skip_rom();
+
+void initTempSensor();
 
 #endif

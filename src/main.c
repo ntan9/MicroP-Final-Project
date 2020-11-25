@@ -54,7 +54,7 @@ void waitForInput(uint32_t gameDelay) {
 		read_ADC(ADC1);
 
 		if (task == HEAT_IT) {
-			temp = (getTemperature() > (currTemp + 10));
+			temp = (getTemperature() > (currTemp + 2));
 			temp *= HEAT_IT;
 		}
 	
@@ -162,6 +162,7 @@ int main(void) {
 	//////////////////////
 
 	setupOneWire();								// Sets up OneWire communication over PA6
+	initTempSensor();							// Configure temp sensor to be 9 bits resolution
 
 	//////////////////////
 	// Display SPI Set Up
@@ -227,7 +228,7 @@ int main(void) {
 
 			// Only add "Heat It" to pool of commands if temp is low enough
 			currTemp = getTemperature();
-			if (currTemp <= ambientTemp + 50) {
+			if (currTemp <= ambientTemp + 2) {
 				task = commands[rand() % numCommands];
 			} else {
 				task = commands[rand() % (numCommands - 1)];
