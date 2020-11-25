@@ -3,15 +3,14 @@
 #define VOP_VAL 80
 
 uint8_t gameStarted;                // Tracks if the game has started or not
-uint8_t gameOver;                   // 
+uint8_t gameOver;                   // Tracks Game over state
 uint32_t gameDelay;                 // Tracks the amount of game will delay after each turn
 uint32_t score;                     // Tracks score of player
 uint8_t task;                       // Stores the task given to the player
 uint8_t input;                      // Stores the user's registered input
-int numCommands;                    // Used to generate random int of range [0, numCommands)
 
 uint16_t ambientTemp;               // Stores the ambient room temperature when the game starts
-uint16_t currTemp;		    // Stores current temperature when "Heat It" is issued
+uint16_t currTemp;		    		// Stores current temperature when "Heat It" is issued
 
 
 // All commands that the game will support
@@ -42,17 +41,20 @@ void initWireIt() {
 }
 
 void initADCInterrupt() {
-    	__NVIC_EnableIRQ(ADC_IRQn);
+    __NVIC_EnableIRQ(ADC_IRQn);
 }
 
 // Waits for gameDelay time to get input from user
 void waitForInput(uint32_t gameDelay) {
-	char msg[64];
 	while (gameDelay > 0 && input == 0) {
+		// Initializes inputs from user
 		uint8_t temp = 0;
 		uint8_t shake = SHAKE_IT * detectMotion(I2C1);
+
+		// Reads for any input
 		read_ADC(ADC1);
 
+		// Read temperature if needed
 		if (task == HEAT_IT) {
 			temp = (getTemperature() > (currTemp + 2));
 			temp *= HEAT_IT;
@@ -89,7 +91,7 @@ void displayInit(void) {
 	displaySend(0, 0b00100001);
 	// Set Vop
 	displaySend(0, 0b10000000 + VOP_VAL);
-	// Set Power Down = 0, V to 0 (horizontal addressing), and H to 0 (normal instruction mode)
+	// Set Power Down = 0, V to 0 (horizontal addressing), and H to 0 (normal instruction)
 	displaySend(0, 0b00100000);
 	// Set display configuration to normal mode
 	displaySend(0, 0b00001100);
@@ -116,14 +118,11 @@ int main(void) {
 	RCC->APB2ENR  |= (RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_SPI1EN);
 
 	/////////////////////////////////
-	// Init TIM2/TIM5 and USART (debugging)
+	// Init TIM2/TIM5
 	/////////////////////////////////
 
-	// Init USART2 for displaying messages and TIM2 for delay timer
-	initUSART(USART2_ID, 115200);               // Initialize USART2 to print to terminal
 	initTIM(DELAY_TIM);                         // Initialize TIM2
-	
-	configMusicTIM(SOUND_TIM);
+	configMusicTIM(SOUND_TIM);					// Initialize TIM5
 
 	// Enable channel 1 for TIM5
 	pinMode(GPIOA, 0, GPIO_ALT);
@@ -161,8 +160,8 @@ int main(void) {
 	// Temp Sensor Set Up
 	//////////////////////
 
-	setupOneWire();								// Sets up OneWire communication over PA6
-	initTempSensor();							// Configure temp sensor to be 9 bits resolution
+	setupOneWire();		// Sets up OneWire communication over PA6
+	initTempSensor();	// Configure temp sensor to be 9 bits resolution
 
 	//////////////////////
 	// Display SPI Set Up
@@ -179,62 +178,55 @@ int main(void) {
 
 	initWireIt();
 
-	// Enable interrupts globally
-	__enable_irq();
 
-	gameStarted = 0;
-
+	// Enable interrupts globally and initialize random seed
+	__enable_irq();	
 	srand(time(NULL));
 
 	while (1) {
+		// Reset game state
+		gameStarted = 0;
 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
-		sendString(USART2, "Push button to begin!\n\r");
 		writeMessage("WELCOME");
 		updateDisplay();
 
 		// Wait for user to start the game
 		while(!gameStarted){
-			/* 
-			 * For some reason, without the delay line the interrupt doesn't trigger
-			 * I think this has to do with the compiler optimizing parts out
-			 */
 			delay_millis(DELAY_TIM, MESSAGE_DELAY);
-
 		}
 		
-		// Initialize a random seed
+		// Initialize a new random seed
 		srand(rand()); 
 
-		// Resets game elements
+		// Reinitializes game elements
 		score = 0;
 		gameOver = 0;
 		gameDelay = GAME_DELAY;
 		ambientTemp = getTemperature();
-		numCommands = NUM_COMMANDS;
+		detectMotion(I2C1);
 
+		// Send visual and audio cue that game has started
 		playMusic(START);
-		sendString(USART2, "Ready?\n\r");
 		writeMessage("READY");
 		updateDisplay();
 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
-		sendString(USART2, "Begin!\n\r");
 		writeMessage("START");
 		updateDisplay();
+
 		// Main game functionality
 		while(1) {
-
 			// Clear user input and selects a random command for task
 			input = 0;
 
 			// Only add "Heat It" to pool of commands if temp is low enough
 			currTemp = getTemperature();
 			if (currTemp <= ambientTemp + 2) {
-				task = commands[rand() % numCommands];
+				task = commands[rand() % NUM_COMMANDS];
 			} else {
-				task = commands[rand() % (numCommands - 1)];
+				task = commands[rand() % (NUM_COMMANDS - 1)];
 			}
 
-			// Write command to screen and play corresponging music
+			// Write command to screen and play corresponding music
 			writeCommand(task);
 			updateDisplay();
 			playMusic(task);
@@ -243,57 +235,40 @@ int main(void) {
 			// Handles different tasks
 			switch (task)
 			{
-			case PUSH_IT:
-				sendString(USART2, "Push It!\n\r");
-				waitForInput(gameDelay);
-				break;
 			case SHOUT_IT:
-				sendString(USART2, "Shout It!\n\r");
 				calibrate_ADC(ADC1);
 				waitForInput(gameDelay);
 				break;
-			case WIRE_IT:
-				sendString(USART2, "Wire It!\n\r");
-				waitForInput(gameDelay);
-				break;
 			case HEAT_IT:
-				sendString(USART2, "Heat It!\n\r");
-				waitForInput(gameDelay/4);		// Decrease delay since heat it takes longer
-				break;
-			case SHAKE_IT:
-				sendString(USART2, "Shake It!\n\r");
-				waitForInput(gameDelay);
+				// Decrease delay since heat it takes longer
+				waitForInput(gameDelay/4);
 				break;
 			default:
+				waitForInput(gameDelay);
 				break;
 			}
 
 			// Processes user input
 			if(task != input) goto game_over;
 			__disable_irq();
+
 			// Play victory tone, update game state
 			playMusic(SUCCESS);
 			++score;
-			gameDelay += GAME_DELAY_CHANGE;
-
-			delay_millis(DELAY_TIM, MESSAGE_DELAY);
+			if(gameDelay > MIN_GAME_DELAY) gameDelay += GAME_DELAY_CHANGE;
+			
 			// Clear flag in motion sensor
+			delay_millis(DELAY_TIM, MESSAGE_DELAY);
 			detectMotion(I2C1);
 		}
 		
 game_over:
 		// Game Over Handler
-		gameStarted = 0;
-		sendString(USART2, "Game Over!\n\r");
-		sprintf(msg, "Your score was %d!\n\r", score);
-		sendString(USART2, msg);
-
 		writeMessage("GAME OVER");
 		writeScore(score, DISPLAY_WIDTH - 12, DISPLAY_HEIGHT - 8);
 		updateDisplay();
 
 		playMusic(GAME_OVER);
-
 		delay_millis(DELAY_TIM, MESSAGE_DELAY);
 	}
 }

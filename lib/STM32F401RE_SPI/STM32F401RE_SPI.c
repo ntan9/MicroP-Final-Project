@@ -221,14 +221,14 @@ void writeDigit(int val,int x,int y) {
             DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
             break;
         case 1:
-            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0x00;
             DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
             DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
             break;
         case 2:
-            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xDF;
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xFB;
             DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0xDB;
-            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFB;
+            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xDF;
             break;
         case 3:
             DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xDB;
@@ -236,23 +236,23 @@ void writeDigit(int val,int x,int y) {
             DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
             break;
         case 4:
-            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xF8;
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0x1F;
             DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0x18;
             DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
             break;
         case 5:
-            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xFB;
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xDF;
             DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0xDB;
-            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xDF;
+            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFB;
             break;
         case 6:
             DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
             DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0xDB;
-            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xDF;
+            DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFB;
             break;
         case 7:
-            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xC0;
-            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0xC0;
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0x03;
+            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0x03;
             DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
             break;
         case 8:
@@ -261,8 +261,8 @@ void writeDigit(int val,int x,int y) {
             DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
             break;
         case 9:
-            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xF1;
-            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0x91;
+            DISPLAYMEM[x + ((y / 8)*DISPLAY_WIDTH)] = 0xDF;
+            DISPLAYMEM[x+1 + ((y / 8)*DISPLAY_WIDTH)] = 0xDB;
             DISPLAYMEM[x+2 + ((y / 8)*DISPLAY_WIDTH)] = 0xFF;
             break;
         default:
@@ -273,11 +273,11 @@ void writeDigit(int val,int x,int y) {
 void writeScore(int val, int x, int y) {
     displaySend(0, 0b10000000 + x);         // Set X address of Ram
     displaySend(0, 0b01000000 + y);         // Set Y address of Ram
-    if(val % 100 >= 0) {
+    if(val / 100 > 0) {
         writeDigit(val / 100, x, y);
         x += 4;
     }
-    if(val % 10 >= 0) {
+    if(val / 10 > 0) {
         writeDigit((val % 100) / 10, x, y);
         x += 4;
     }

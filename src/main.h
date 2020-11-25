@@ -33,8 +33,9 @@
 #define NUM_COMMANDS 5
 
 #define MESSAGE_DELAY 1500
-#define GAME_DELAY 3000
-#define GAME_DELAY_CHANGE -5
+#define GAME_DELAY 5000
+#define GAME_DELAY_CHANGE -15
+#define MIN_GAME_DELAY 500
 
 
 /////////////////////////////
