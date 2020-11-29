@@ -1,5 +1,4 @@
-// Header file for I2C library
-
+// STM32F401RE_I2C.h
 #ifndef STM32F4_I2C_H
 #define STM32F4_I2C_H
 

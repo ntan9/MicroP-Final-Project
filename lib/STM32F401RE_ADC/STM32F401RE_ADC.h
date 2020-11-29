@@ -1,4 +1,4 @@
-// Header file for ADC library
+// STM32F401RE_ADC.h
 
 #ifndef STM32F4_I2C_H
 #define STM32F4_I2C_H

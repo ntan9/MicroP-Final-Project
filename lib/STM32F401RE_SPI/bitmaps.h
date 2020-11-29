@@ -1,4 +1,5 @@
-
+// bitmaps.h
+// Contains definitions for the LCD Messages
 #ifndef BITMAPS_H
 #define    BITMAPS_H
 

@@ -1,5 +1,4 @@
-// Function definitions for the ADC
-
+// STM32F401RE_ADC.c
 #include "STM32F401RE_ADC.h"
 
 void initADC(ADC_TypeDef *A2D, GPIO_TypeDef *GPIO, uint8_t pin, uint8_t sample) {
