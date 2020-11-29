@@ -1,3 +1,4 @@
+// main.c
 #include "main.h"
 
 #define VOP_VAL 80
@@ -196,7 +197,7 @@ int main(void) {
 		}
 		
 		// Initialize a new random seed
-		srand(rand()); 
+		srand(read_ADC(ADC1)); 
 
 		// Reinitializes game elements
 		score = 0;
@@ -215,14 +216,14 @@ int main(void) {
 
 		// Main game functionality
 		while(1) {
-			// Clear user input and selects a random command for task
-			input = 0;
 
 			// Only add "Heat It" to pool of commands if temp is low enough
 			currTemp = getTemperature();
 			if (currTemp <= ambientTemp + 2) {
+				// task = commands[score % NUM_COMMANDS]	// Demo code
 				task = commands[rand() % NUM_COMMANDS];
 			} else {
+				// task = commands[score % NUM_COMMANDS]	// Demo code
 				task = commands[rand() % (NUM_COMMANDS - 1)];
 			}
 
@@ -232,6 +233,11 @@ int main(void) {
 			playMusic(task);
 
 			__enable_irq();
+
+			// Clear user input and selects a random command for task
+			input = 0;
+			detectMotion(I2C1);
+
 			// Handles different tasks
 			switch (task)
 			{
@@ -259,7 +265,6 @@ int main(void) {
 			
 			// Clear flag in motion sensor
 			delay_millis(DELAY_TIM, MESSAGE_DELAY);
-			detectMotion(I2C1);
 		}
 		
 game_over:
